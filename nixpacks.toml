@@ -1,8 +1,0 @@
-# Nixpacks configuration for Railway deployment
-# Using default Python provider with custom start command
-
-[phases.setup]
-nixPkgs = ["gcc", "libxml2", "libxslt"]
-
-[start]
-cmd = "gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120"

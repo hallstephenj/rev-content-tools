@@ -1,170 +1,145 @@
-# AI SEO Content Generator
+# Rev Content Tools
 
-A powerful tool for downloading website content and generating SEO-optimized articles at scale using AI. This application helps content marketers leverage AI to produce high-value content that attracts organic traffic and generates qualified leads.
+**A suite of tools to empower content marketers** — built by [Reverent Content Co.](https://reverentcontent.co)
+
+---
+
+## Overview
+
+Rev Content Tools is an integrated platform designed to streamline the content marketing workflow. From research and creation to tracking and optimization, this toolkit helps marketing teams produce high-quality content at scale while maintaining brand consistency and measuring performance.
+
+### The Toolkit
+
+| Tool | Description |
+|------|-------------|
+| **SEO Content Generator** | AI-powered content creation with built-in SEO optimization |
+| **Website Scraper** | Extract and analyze existing content to inform strategy |
+| **SEO Analyzer** | Score and optimize content for search performance |
+| **UTM Link Builder** | Create, manage, and audit tracked campaign links |
+| **Topic Cluster Generator** | Plan content series around pillar topics |
+
+---
 
 ## Features
 
-- **Website Content Scraper**: Automatically download all written content from any website
-- **AI Content Generation**: Generate new articles based on your existing content style
-- **SEO Optimization**: Automatic keyword analysis and optimization recommendations
-- **Content Series Generator**: Create multiple related articles on a topic
-- **Topic Idea Generator**: Get AI-powered topic suggestions based on your content
-- **SEO Analysis**: Comprehensive scoring and recommendations for all content
-- **Web Interface**: Easy-to-use dashboard for managing all operations
+### 🤖 AI Content Generation
+- Generate SEO-optimized articles based on your brand voice
+- Create content series around pillar topics
+- Get AI-powered topic suggestions tailored to your niche
+- Automatic keyword integration and optimization
 
-## How It Works
+### 🔍 Website Scraping & Analysis
+- Download and analyze content from any website
+- Learn brand voice and style patterns
+- Extract metadata, keywords, and content structure
+- Discover content gaps and opportunities
 
-1. **Scrape Your Website**: The tool downloads all written content from your company's website, analyzing the style, tone, and topics
-2. **AI Analysis**: The system learns from your existing content to understand your brand voice
-3. **Generate New Content**: Create SEO-optimized articles that match your style and target specific keywords
-4. **Optimize for Search**: Each article is analyzed for SEO performance with actionable recommendations
+### 📊 SEO Analysis & Scoring
+- Comprehensive SEO scoring (0-100) for all content
+- Actionable optimization recommendations
+- Keyword density and placement analysis
+- Readability scoring and heading structure review
 
-## Installation
+### 🔗 UTM Link Management
+- Generate tracked links with consistent UTM parameters
+- Define channel-specific defaults and naming conventions
+- Maintain a searchable link library
+- Export links for reporting and auditing
+- Enforce UTM policies across your organization
+
+### 👥 Team Features
+- User authentication and account management
+- Centralized content and link libraries
+- Consistent branding across all generated content
+
+---
+
+## Quick Start
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.8+
 - OpenAI API key
 
-### Setup
+### Installation
 
-1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd SEO-tool
-```
+# Clone the repository
+git clone https://github.com/hallstephenj/rev-content-tools.git
+cd rev-content-tools/SEO-tool
 
-2. Install dependencies:
-```bash
+# Install dependencies
 pip install -r requirements.txt
-```
 
-3. Configure environment variables:
-```bash
+# Configure environment
 cp .env.example .env
-```
+# Edit .env and add your OPENAI_API_KEY
 
-Edit `.env` and add your OpenAI API key:
-```
-OPENAI_API_KEY=your_openai_api_key_here
-```
-
-4. Initialize the database:
-```bash
-python -c "from models import Database; Database()"
-```
-
-## Usage
-
-### Starting the Web Interface
-
-```bash
+# Run the application
 python app.py
 ```
 
 The application will be available at `http://localhost:5000`
 
-### Scraping a Website
+---
 
-1. Navigate to "Scrape Website" in the web interface
-2. Enter the website URL (e.g., `https://example.com`)
-3. Set the maximum number of pages to scrape
-4. Click "Start Scraping"
+## Tools Guide
 
-The scraper will:
-- Automatically discover pages via links and sitemaps
-- Extract clean content and metadata
-- Store everything in the database
-- Respect a 1-second delay between requests
+### SEO Content Generator
 
-### Generating Content
+Create high-quality, SEO-optimized content at scale:
 
-#### Single Article
+1. **Single Article**: Enter a topic, target keywords, and desired word count
+2. **Topic Ideas**: Generate AI-powered topic suggestions for your niche
+3. **Content Series**: Create multiple related articles around a pillar topic
 
-1. Navigate to "Generate Content"
-2. Enter a topic or title
-3. Provide target keywords (comma-separated)
-4. Set desired word count
-5. Click "Generate Content"
+Each piece of generated content includes:
+- Full article with proper heading structure
+- Meta description
+- SEO score and optimization recommendations
+- Keyword analysis
 
-#### Topic Ideas
+### Website Scraper
 
-1. In the "Generate Content" page, scroll to "Generate Topic Ideas"
-2. Optionally specify a niche
-3. Set number of topics to generate
-4. Click "Generate Topic Ideas"
+Build your content intelligence by analyzing existing websites:
 
-#### Content Series
+1. Enter a website URL
+2. Set the maximum pages to scrape
+3. The scraper automatically discovers pages via links and sitemaps
+4. Content is extracted, cleaned, and stored for analysis
 
-1. In the "Generate Content" page, scroll to "Generate Content Series"
-2. Enter a main topic
-3. Specify number of posts
-4. Click "Generate Series"
+Use cases:
+- Analyze your own site to understand content patterns
+- Research competitor content strategies
+- Build a reference library for AI training
 
-The AI will create multiple related articles automatically.
+### UTM Link Builder
 
-### Viewing Results
+Maintain consistent campaign tracking across all channels:
 
-- **Scraped Content**: View all downloaded pages with metadata
-- **Generated Content**: Browse all AI-generated articles
-- Click on any article to see:
-  - Full content
-  - SEO analysis and score
-  - Optimization recommendations
-  - Top keywords
+1. **Set Policies**: Define your organization's UTM naming conventions
+2. **Configure Channels**: Set up default parameters for each marketing channel
+3. **Generate Links**: Create tracked URLs with auto-filled defaults
+4. **Library**: Search and manage all generated links
+5. **Audit**: Review link creation history and usage
 
-## Command Line Usage
+---
 
-### Scrape a Website
+## Configuration
 
-```python
-from scraper import scrape_website
+Create a `.env` file with the following variables:
 
-# Scrape up to 100 pages
-scrape_website("https://example.com", max_pages=100)
+```bash
+# Required
+OPENAI_API_KEY=your_openai_api_key
+
+# Optional
+FLASK_SECRET_KEY=your_secret_key
+FLASK_ENV=development
+DATABASE_URL=sqlite:///seo_content.db
 ```
 
-### Generate Content
-
-```python
-from content_generator import AIContentGenerator
-
-generator = AIContentGenerator()
-
-# Generate a single article
-content_id = generator.generate_and_save_content(
-    topic="The Future of Bitcoin Security",
-    keywords=["bitcoin", "security", "cryptocurrency"],
-    word_count=1500
-)
-
-# Generate topic ideas
-topics = generator.generate_topic_ideas(num_topics=10, niche="cryptocurrency")
-
-# Generate content series
-generator.generate_content_series(
-    main_topic="Bitcoin Investment Strategies",
-    num_posts=5
-)
-```
-
-### Analyze SEO
-
-```python
-from seo_analyzer import SEOAnalyzer
-
-analyzer = SEOAnalyzer()
-
-# Generate SEO report
-report = analyzer.generate_seo_report(
-    content="Your article content here...",
-    title="Article Title",
-    keywords=["keyword1", "keyword2"]
-)
-
-print(f"SEO Score: {report['seo_score']}/100")
-print(f"Recommendations: {report['recommendations']}")
-```
+---
 
 ## Project Structure
 
@@ -173,197 +148,125 @@ SEO-tool/
 ├── app.py                 # Flask web application
 ├── config.py              # Configuration settings
 ├── models.py              # Database models
-├── scraper.py             # Website scraper
+├── scraper.py             # Website content scraper
 ├── content_generator.py   # AI content generation
-├── seo_analyzer.py        # SEO analysis tools
+├── seo_analyzer.py        # SEO analysis engine
 ├── requirements.txt       # Python dependencies
-├── .env.example          # Environment variables template
-├── .gitignore            # Git ignore rules
-└── templates/            # HTML templates
-    ├── base.html
-    ├── index.html
-    ├── scrape.html
-    ├── scraped_content.html
-    ├── generate.html
-    ├── generated_content.html
-    └── view_generated.html
+├── templates/
+│   ├── base.html          # Base template
+│   ├── index.html         # Dashboard
+│   ├── scrape.html        # Scraper interface
+│   ├── generate.html      # Content generator
+│   ├── analyze.html       # SEO analyzer
+│   └── utm/               # UTM tool templates
+│       ├── index.html
+│       ├── generate.html
+│       ├── library.html
+│       ├── policy.html
+│       ├── channels.html
+│       └── audit.html
+└── wsgi.py                # Production WSGI entry point
 ```
-
-## Configuration
-
-Edit `.env` to customize:
-
-```bash
-# OpenAI API Configuration
-OPENAI_API_KEY=your_key_here
-
-# Application Settings
-FLASK_SECRET_KEY=your_secret_key
-FLASK_ENV=development
-
-# Database
-DATABASE_URL=sqlite:///seo_content.db
-
-# Scraper Settings
-MAX_PAGES=100
-CONCURRENT_REQUESTS=5
-USER_AGENT=Mozilla/5.0...
-```
-
-## Database Schema
-
-### ScrapedContent
-- `id`: Primary key
-- `url`: Page URL (unique)
-- `title`: Page title
-- `content`: Main content text
-- `meta_description`: Meta description
-- `keywords`: Meta keywords
-- `word_count`: Word count
-- `domain`: Website domain
-- `scraped_at`: Timestamp
-
-### GeneratedContent
-- `id`: Primary key
-- `title`: Article title
-- `content`: Article content
-- `keywords`: Target keywords (JSON)
-- `meta_description`: Meta description
-- `word_count`: Word count
-- `seo_score`: SEO score (0-100)
-- `source_urls`: Source URLs (JSON)
-- `topic`: Main topic
-- `generated_at`: Timestamp
-
-## SEO Scoring
-
-The SEO analyzer evaluates content on:
-
-- **Word Count** (20 points): Longer, comprehensive content ranks better
-- **Title Optimization** (15 points): Ideal length is 50-60 characters
-- **Meta Description** (15 points): Ideal length is 150-160 characters
-- **Heading Structure** (20 points): Proper use of H2, H3 headings
-- **Keyword Usage** (15 points): Natural keyword integration (0.5-2.5% density)
-- **Readability** (15 points): Flesch reading ease score
-
-**Score Interpretation:**
-- 70-100: Excellent SEO optimization
-- 50-69: Good, with room for improvement
-- 0-49: Needs significant optimization
-
-## Best Practices
-
-1. **Scraping**:
-   - Start with your homepage
-   - Allow the scraper to discover pages naturally
-   - Scrape at least 20-30 pages for best results
-
-2. **Content Generation**:
-   - Provide specific, descriptive topics
-   - Use 3-5 targeted keywords
-   - Aim for 1000-1500 words for SEO impact
-   - Review and edit generated content before publishing
-
-3. **SEO Optimization**:
-   - Target SEO scores above 70
-   - Follow the recommendations provided
-   - Include natural keyword variations
-   - Use clear heading hierarchy
-
-## API Endpoints
-
-- `GET /` - Home page with statistics
-- `GET/POST /scrape` - Scrape website
-- `GET /scraped-content` - View scraped content
-- `GET/POST /generate` - Generate content
-- `POST /generate-topics` - Generate topic ideas
-- `POST /generate-series` - Generate content series
-- `GET /generated-content` - View generated content
-- `GET /generated/<id>` - View specific article
-- `POST /analyze` - Analyze content for SEO
-- `GET /api/stats` - Get statistics (JSON)
-
-## Requirements
-
-Key dependencies:
-- Flask 3.0.0 - Web framework
-- OpenAI 1.6.1 - AI content generation
-- BeautifulSoup4 4.12.2 - HTML parsing
-- Trafilatura 1.6.3 - Content extraction
-- SQLAlchemy 2.0.23 - Database ORM
-- Requests 2.31.0 - HTTP requests
-
-See `requirements.txt` for full list.
-
-## Troubleshooting
-
-### OpenAI API Errors
-- Ensure your API key is correctly set in `.env`
-- Check your OpenAI account has sufficient credits
-- Verify you're using a supported model (GPT-4)
-
-### Scraping Issues
-- Some websites may block scrapers - this is normal
-- Check that the URL is accessible in your browser
-- Try reducing `MAX_PAGES` for initial tests
-
-### Database Errors
-- Delete `seo_content.db` and restart to reset database
-- Ensure SQLite is installed on your system
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit pull requests.
-
-## License
-
-This project is licensed under the MIT License.
-
-## Support
-
-For issues and questions, please open an issue on GitHub.
-
-## Roadmap
-
-Future enhancements:
-- [ ] Support for multiple AI models (Claude, Gemini)
-- [ ] Scheduled content generation
-- [ ] Integration with WordPress/CMS platforms
-- [ ] Advanced keyword research tools
-- [ ] Content calendar and planning
-- [ ] Multi-language support
-- [ ] A/B testing for headlines
-- [ ] Social media integration
-
-## Credits
-
-Built with:
-- OpenAI GPT-4 for content generation
-- Flask for web framework
-- Trafilatura for content extraction
-- BeautifulSoup for HTML parsing
 
 ---
 
-**Note**: This tool is designed to assist content creation, not replace human creativity. Always review and edit AI-generated content before publishing to ensure accuracy, quality, and alignment with your brand voice.
+## SEO Scoring Methodology
 
-## Deploying to Railway
+Content is evaluated across six dimensions:
 
-This project is ready to deploy on Railway as a Python web service.
+| Factor | Weight | Criteria |
+|--------|--------|----------|
+| Word Count | 20 pts | Comprehensive content (1000+ words) |
+| Title | 15 pts | Optimal length (50-60 characters) |
+| Meta Description | 15 pts | Optimal length (150-160 characters) |
+| Heading Structure | 20 pts | Proper H2/H3 hierarchy |
+| Keyword Usage | 15 pts | Natural density (0.5-2.5%) |
+| Readability | 15 pts | Flesch reading ease score |
 
-- The production entrypoint is `wsgi.py`.
-- Railway will start the app with Gunicorn via `railway.toml` (and there’s also a `Procfile` for compatibility).
+**Score Interpretation:**
+- **70-100**: Excellent — ready to publish
+- **50-69**: Good — minor optimizations recommended
+- **0-49**: Needs work — review recommendations
 
-### Railway environment variables
+---
 
-Set these in your Railway service **Variables**:
+## Deployment
 
-- `FLASK_SECRET_KEY`: **Required** (use a long random string).
-- `OPENAI_API_KEY`: Required only for AI generation features.
-- `DATABASE_URL`: Optional.
-  - If unset, the app uses a local SQLite file: `sqlite:///seo_content.db`.
+### Railway (Recommended)
 
-### Persistence note (SQLite)
+This project is configured for one-click Railway deployment:
 
-Railway’s filesystem is **ephemeral** by default. If you keep SQLite, you’ll want to add a Railway **Volume** and point `DATABASE_URL` at it, or switch to Railway Postgres and set `DATABASE_URL` accordingly.
+1. Connect your GitHub repository to Railway
+2. Set environment variables:
+   - `FLASK_SECRET_KEY` (required)
+   - `OPENAI_API_KEY` (required for AI features)
+   - `DATABASE_URL` (optional — defaults to SQLite)
 
+3. Deploy!
+
+**Note**: For persistent data on Railway, attach a Volume or use Railway Postgres.
+
+### Manual Deployment
+
+```bash
+gunicorn wsgi:app --bind 0.0.0.0:5000 --workers 2 --threads 4
+```
+
+---
+
+## API Reference
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Dashboard with statistics |
+| `/scrape` | GET, POST | Website scraper |
+| `/scraped-content` | GET | View scraped content |
+| `/generate` | GET, POST | Content generator |
+| `/generate-topics` | POST | Generate topic ideas |
+| `/generate-series` | POST | Generate content series |
+| `/generated-content` | GET | View generated content |
+| `/analyze` | POST | Analyze content for SEO |
+| `/utm` | GET | UTM tool dashboard |
+| `/utm/generate` | GET, POST | Generate tracked links |
+| `/utm/library` | GET | Link library |
+| `/utm/policy` | GET, POST | UTM policy settings |
+| `/utm/channels` | GET, POST | Channel configuration |
+| `/utm/export` | GET | Export links as CSV |
+| `/api/stats` | GET | Statistics (JSON) |
+
+---
+
+## Roadmap
+
+- [ ] Multi-model AI support (Claude, Gemini)
+- [ ] WordPress/CMS integrations
+- [ ] Content calendar and scheduling
+- [ ] Advanced keyword research
+- [ ] A/B headline testing
+- [ ] Social media integration
+- [ ] Multi-language support
+- [ ] Team collaboration features
+
+---
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
+
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+## About Reverent Content Co.
+
+We help businesses create content that connects. Rev Content Tools is our internal toolkit, now available to the content marketing community.
+
+**Questions?** Open an issue or reach out at [reverentcontent.co](https://reverentcontent.co)
+
+---
+
+*Built with Flask, OpenAI, and a passion for great content.*

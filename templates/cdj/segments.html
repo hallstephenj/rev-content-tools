@@ -1,0 +1,41 @@
+{% extends "cdj/base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Customer Segments</h2>
+    <p style="margin-bottom: 20px;">
+        Manage your customer segments and their decision journey data.
+    </p>
+
+    {% if segments %}
+    <ul class="segment-list">
+        {% for segment in segments %}
+        <li class="segment-item">
+            <div>
+                <h4>
+                    {{ segment.segment_name }}
+                    <span class="segment-badge {% if segment.is_primary %}primary{% else %}secondary{% endif %}">
+                        {% if segment.is_primary %}Primary{% else %}Secondary{% endif %}
+                    </span>
+                </h4>
+                {% if segment.description %}
+                <p style="font-size: 13px; color: #666; margin: 4px 0 0 0;">
+                    {{ segment.description[:120] }}{% if segment.description|length > 120 %}...{% endif %}
+                </p>
+                {% endif %}
+            </div>
+            <div class="segment-actions">
+                <a href="/cdj/segment/{{ segment.id }}" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">View / Edit</a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color: #888;">No segments defined yet.</p>
+    {% endif %}
+
+    <div style="margin-top: 16px;">
+        <a href="/cdj/segment/new" class="btn">Add New Segment</a>
+    </div>
+</div>
+{% endblock %}

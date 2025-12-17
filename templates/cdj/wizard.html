@@ -1,0 +1,285 @@
+{% extends "cdj/base.html" %}
+
+{% block content %}
+<div class="wizard-progress">
+    <div class="wizard-step {% if step >= 1 %}completed{% endif %} {% if step == 1 %}active{% endif %}">
+        <div class="wizard-step-number">1</div>
+        <div class="wizard-step-label">Market</div>
+    </div>
+    <div class="wizard-step {% if step >= 2 %}completed{% endif %} {% if step == 2 %}active{% endif %}">
+        <div class="wizard-step-number">2</div>
+        <div class="wizard-step-label">Segments</div>
+    </div>
+    <div class="wizard-step {% if step >= 3 %}completed{% endif %} {% if step == 3 %}active{% endif %}">
+        <div class="wizard-step-number">3</div>
+        <div class="wizard-step-label">Definition</div>
+    </div>
+    <div class="wizard-step {% if step >= 4 %}completed{% endif %} {% if step == 4 %}active{% endif %}">
+        <div class="wizard-step-number">4</div>
+        <div class="wizard-step-label">Economics</div>
+    </div>
+    <div class="wizard-step {% if step >= 5 %}completed{% endif %} {% if step == 5 %}active{% endif %}">
+        <div class="wizard-step-number">5</div>
+        <div class="wizard-step-label">Drivers</div>
+    </div>
+    <div class="wizard-step {% if step >= 6 %}completed{% endif %} {% if step == 6 %}active{% endif %}">
+        <div class="wizard-step-number">6</div>
+        <div class="wizard-step-label">Objections</div>
+    </div>
+    <div class="wizard-step {% if step >= 7 %}completed{% endif %} {% if step == 7 %}active{% endif %}">
+        <div class="wizard-step-number">7</div>
+        <div class="wizard-step-label">Journey</div>
+    </div>
+</div>
+
+<div class="card">
+    {% if step == 1 %}
+    <h2>Step 1: Market Context</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Define the global context for your entire business. This applies to all customer segments.
+    </p>
+
+    <form method="POST" action="/cdj/wizard/1">
+        <div class="form-group">
+            <label>Industry / Category</label>
+            <div class="label-tip">What industry or category does your business operate in?</div>
+            <input type="text" name="industry_category" value="{{ market_context.industry_category or '' }}" placeholder="e.g., B2B SaaS, E-commerce Fashion, Professional Services" required>
+        </div>
+
+        <div class="form-group">
+            <label>Business Model</label>
+            <div class="label-tip">How do you sell to customers?</div>
+            <select name="business_model" required>
+                <option value="">Select...</option>
+                <option value="B2B" {% if market_context and market_context.business_model == 'B2B' %}selected{% endif %}>B2B</option>
+                <option value="B2C" {% if market_context and market_context.business_model == 'B2C' %}selected{% endif %}>B2C</option>
+                <option value="Hybrid" {% if market_context and market_context.business_model == 'Hybrid' %}selected{% endif %}>Hybrid (B2B + B2C)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Typical Purchase Size (Range)</label>
+            <div class="label-tip">Ranges are sufficient - what do customers typically spend?</div>
+            <input type="text" name="purchase_size_range" value="{{ market_context.purchase_size_range or '' }}" placeholder="e.g., $50-$500, $5K-$50K, $100K+" required>
+        </div>
+
+        <div class="wizard-buttons">
+            <a href="/cdj" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn">Continue</button>
+        </div>
+    </form>
+
+    {% elif step == 2 %}
+    <h2>Step 2: Customer Segments</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Define the distinct customer segments you serve. Each segment has different decision logic.
+    </p>
+
+    {% if segments %}
+    <ul class="segment-list" style="margin-bottom: 24px;">
+        {% for segment in segments %}
+        <li class="segment-item">
+            <div>
+                <h4>
+                    {{ segment.segment_name }}
+                    <span class="segment-badge {% if segment.is_primary %}primary{% else %}secondary{% endif %}">
+                        {% if segment.is_primary %}Primary{% else %}Secondary{% endif %}
+                    </span>
+                </h4>
+            </div>
+            <div class="segment-actions">
+                <form method="POST" action="/cdj/wizard/2/delete/{{ segment.id }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;">Delete</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <form method="POST" action="/cdj/wizard/2" style="margin-bottom: 24px;">
+        <div class="form-group">
+            <label>Segment Name</label>
+            <input type="text" name="segment_name" placeholder="e.g., Enterprise IT Buyers, Small Business Owners" required>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="is_primary" value="1">
+                Mark as Primary Segment
+            </label>
+            <div class="label-tip">Primary segments are your main focus</div>
+        </div>
+
+        <button type="submit" class="btn btn-secondary">Add Segment</button>
+    </form>
+
+    {% if segments %}
+    <div class="wizard-buttons">
+        <a href="/cdj/wizard/1" class="btn btn-secondary">Back</a>
+        <a href="/cdj/wizard/3" class="btn">Continue</a>
+    </div>
+    {% else %}
+    <div class="alert alert-error">
+        Please add at least one customer segment before continuing.
+    </div>
+    <div class="wizard-buttons">
+        <a href="/cdj/wizard/1" class="btn btn-secondary">Back</a>
+        <span></span>
+    </div>
+    {% endif %}
+
+    {% elif step >= 3 and step <= 7 %}
+    {% if current_segment %}
+    <h2>
+        {% if step == 3 %}Step 3: Segment Definition
+        {% elif step == 4 %}Step 4: Economic Reality
+        {% elif step == 5 %}Step 5: Decision Drivers
+        {% elif step == 6 %}Step 6: Objections & Friction
+        {% elif step == 7 %}Step 7: Decision Journey
+        {% endif %}
+    </h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Segment: <strong>{{ current_segment.segment_name }}</strong>
+        <span class="segment-badge {% if current_segment.is_primary %}primary{% else %}secondary{% endif %}" style="margin-left: 8px;">
+            {% if current_segment.is_primary %}Primary{% else %}Secondary{% endif %}
+        </span>
+    </p>
+
+    <form method="POST" action="/cdj/wizard/{{ step }}">
+        <input type="hidden" name="segment_id" value="{{ current_segment.id }}">
+
+        {% if step == 3 %}
+        <div class="form-group">
+            <label>One-Paragraph Description</label>
+            <div class="label-tip">Describe this segment's motivation, not just their behavior</div>
+            <textarea name="description" rows="4" required>{{ current_segment.description or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Core Job-to-be-Done</label>
+            <div class="label-tip">What are they fundamentally trying to accomplish?</div>
+            <textarea name="core_jtbd" rows="3" required>{{ current_segment.core_jtbd or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Primary Problem</label>
+            <div class="label-tip">What specific problem does your product solve for them?</div>
+            <textarea name="primary_problem" rows="3" required>{{ current_segment.primary_problem or '' }}</textarea>
+        </div>
+
+        {% elif step == 4 %}
+        <div class="form-group">
+            <label>Purchasing Power</label>
+            <div class="label-tip">What budget range can they access?</div>
+            <input type="text" name="purchasing_power" value="{{ current_segment.purchasing_power or '' }}" placeholder="e.g., $10K-$100K annual budget" required>
+        </div>
+
+        <div class="form-group">
+            <label>Budget Ownership</label>
+            <div class="label-tip">Who controls the money? Do they need approval?</div>
+            <input type="text" name="budget_ownership" value="{{ current_segment.budget_ownership or '' }}" placeholder="e.g., Direct control, Needs VP approval, Department budget" required>
+        </div>
+
+        <div class="form-group">
+            <label>Price Sensitivity</label>
+            <div class="label-tip">How price-conscious is this segment?</div>
+            <select name="price_sensitivity" required>
+                <option value="">Select...</option>
+                <option value="Low" {% if current_segment.price_sensitivity == 'Low' %}selected{% endif %}>Low - Value matters more than price</option>
+                <option value="Medium" {% if current_segment.price_sensitivity == 'Medium' %}selected{% endif %}>Medium - Balanced consideration</option>
+                <option value="High" {% if current_segment.price_sensitivity == 'High' %}selected{% endif %}>High - Price is a major factor</option>
+            </select>
+        </div>
+
+        {% elif step == 5 %}
+        <div class="form-group">
+            <label>Top Decision Criterion #1</label>
+            <div class="label-tip">The single most important factor in their decision</div>
+            <input type="text" name="decision_criteria_1" value="{{ current_segment.decision_criteria_1 or '' }}" placeholder="e.g., ROI, Ease of use, Vendor reputation" required>
+        </div>
+
+        <div class="form-group">
+            <label>Top Decision Criterion #2</label>
+            <input type="text" name="decision_criteria_2" value="{{ current_segment.decision_criteria_2 or '' }}" placeholder="Second most important factor" required>
+        </div>
+
+        <div class="form-group">
+            <label>Top Decision Criterion #3</label>
+            <input type="text" name="decision_criteria_3" value="{{ current_segment.decision_criteria_3 or '' }}" placeholder="Third most important factor" required>
+        </div>
+
+        <div class="form-group">
+            <label>Primary Emotional Driver</label>
+            <div class="label-tip">What emotional need drives their decision?</div>
+            <textarea name="emotional_driver" rows="3" required>{{ current_segment.emotional_driver or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Primary Rational Driver</label>
+            <div class="label-tip">What logical justification do they need?</div>
+            <textarea name="rational_driver" rows="3" required>{{ current_segment.rational_driver or '' }}</textarea>
+        </div>
+
+        {% elif step == 6 %}
+        <div class="form-group">
+            <label>Primary Objection</label>
+            <div class="label-tip">The main reason they hesitate or say no</div>
+            <textarea name="primary_objection" rows="3" required>{{ current_segment.primary_objection or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Secondary Objection</label>
+            <div class="label-tip">The second most common objection</div>
+            <textarea name="secondary_objection" rows="3" required>{{ current_segment.secondary_objection or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Biggest Blocker to Action</label>
+            <div class="label-tip">What stops them from moving forward even when interested?</div>
+            <textarea name="biggest_blocker" rows="3" required>{{ current_segment.biggest_blocker or '' }}</textarea>
+        </div>
+
+        {% elif step == 7 %}
+        <div class="form-group">
+            <label>Trigger Moment</label>
+            <div class="label-tip">What event or realization starts their buying journey?</div>
+            <textarea name="trigger_moment" rows="3" required>{{ current_segment.trigger_moment or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Evaluation Behavior</label>
+            <div class="label-tip">How do they research and compare options?</div>
+            <textarea name="evaluation_behavior" rows="3" required>{{ current_segment.evaluation_behavior or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Decision-Ending Factor</label>
+            <div class="label-tip">What finally pushes them to commit (or walk away)?</div>
+            <textarea name="decision_ending_factor" rows="3" required>{{ current_segment.decision_ending_factor or '' }}</textarea>
+        </div>
+        {% endif %}
+
+        <div class="wizard-buttons">
+            <a href="/cdj/wizard/{{ step - 1 }}" class="btn btn-secondary">Back</a>
+            {% if step == 7 and segment_index < total_segments - 1 %}
+            <button type="submit" class="btn">Next Segment</button>
+            {% elif step == 7 %}
+            <button type="submit" class="btn">Complete Wizard</button>
+            {% else %}
+            <button type="submit" class="btn">Continue</button>
+            {% endif %}
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-error">
+        No segment found. Please return to step 2.
+    </div>
+    <div class="wizard-buttons">
+        <a href="/cdj/wizard/2" class="btn">Back to Segments</a>
+        <span></span>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

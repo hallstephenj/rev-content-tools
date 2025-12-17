@@ -1,0 +1,114 @@
+{% extends "cdj/base.html" %}
+
+{% block content %}
+{% if wizard_completed %}
+<div class="stats">
+    <div class="stat-card">
+        <h3>{{ segment_count }}</h3>
+        <p>Customer Segments</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ primary_count }}</h3>
+        <p>Primary Segments</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ secondary_count }}</h3>
+        <p>Secondary Segments</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Customer Decision Journey</h2>
+    <p style="margin-bottom: 20px;">
+        A systematic framework for understanding how your customers make purchasing decisions.
+    </p>
+
+    <h3>Market Context</h3>
+    <p style="margin-bottom: 12px;">
+        <strong>Industry:</strong> {{ market_context.industry_category or 'Not set' }}<br>
+        <strong>Business Model:</strong> {{ market_context.business_model or 'Not set' }}<br>
+        <strong>Purchase Size:</strong> {{ market_context.purchase_size_range or 'Not set' }}
+    </p>
+
+    <div style="margin-top: 16px;">
+        <a href="/cdj/market-context" class="btn btn-secondary">Edit Market Context</a>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Your Segments</h2>
+    <p style="margin-bottom: 20px;">
+        Manage and refine your customer segments to improve campaign targeting.
+    </p>
+
+    {% if segments %}
+    <ul class="segment-list">
+        {% for segment in segments %}
+        <li class="segment-item">
+            <div>
+                <h4>
+                    {{ segment.segment_name }}
+                    <span class="segment-badge {% if segment.is_primary %}primary{% else %}secondary{% endif %}">
+                        {% if segment.is_primary %}Primary{% else %}Secondary{% endif %}
+                    </span>
+                </h4>
+                {% if segment.description %}
+                <p style="font-size: 13px; color: #666; margin: 4px 0 0 0;">
+                    {{ segment.description[:100] }}{% if segment.description|length > 100 %}...{% endif %}
+                </p>
+                {% endif %}
+            </div>
+            <div class="segment-actions">
+                <a href="/cdj/segment/{{ segment.id }}" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px;">View</a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color: #888;">No segments defined yet.</p>
+    {% endif %}
+
+    <div style="margin-top: 16px;">
+        <a href="/cdj/segment/new" class="btn">Add New Segment</a>
+    </div>
+</div>
+
+<div class="card">
+    <h2>How It Works</h2>
+    <ol style="margin-left: 20px; color: #444; font-size: 13px;">
+        <li style="margin-bottom: 8px;"><strong>Market Context</strong> — Define your industry, business model, and purchase patterns</li>
+        <li style="margin-bottom: 8px;"><strong>Segments</strong> — Create distinct customer groups with unique decision logic</li>
+        <li style="margin-bottom: 8px;"><strong>Decision Drivers</strong> — Map the key factors that influence each segment</li>
+        <li style="margin-bottom: 8px;"><strong>Use Everywhere</strong> — Reference segment data in campaigns, content, and messaging</li>
+    </ol>
+</div>
+
+{% else %}
+<div class="card">
+    <h2>Welcome to the CDJ Tool</h2>
+    <p style="margin-bottom: 20px;">
+        The Customer Decision Journey (CDJ) Tool helps you map how your customers think, evaluate, and buy.
+        This creates a foundation of truth that constrains all downstream marketing decisions.
+    </p>
+
+    <h3>What You'll Define</h3>
+    <ol style="margin-left: 20px; color: #444; font-size: 13px; margin-bottom: 24px;">
+        <li style="margin-bottom: 8px;"><strong>Market Context</strong> — Industry, business model, purchase patterns</li>
+        <li style="margin-bottom: 8px;"><strong>Customer Segments</strong> — Distinct groups with different decision logic</li>
+        <li style="margin-bottom: 8px;"><strong>Economic Reality</strong> — Purchasing power, budget ownership, price sensitivity</li>
+        <li style="margin-bottom: 8px;"><strong>Decision Drivers</strong> — What matters most when they choose</li>
+        <li style="margin-bottom: 8px;"><strong>Objections & Friction</strong> — What holds them back</li>
+        <li style="margin-bottom: 8px;"><strong>Decision Journey</strong> — Triggers, evaluation, and decision-ending factors</li>
+    </ol>
+
+    <div style="padding: 16px; background: #f9f9f9; border-radius: 4px; margin-bottom: 24px;">
+        <p style="font-size: 13px; color: #666; margin: 0;">
+            <strong>Time required:</strong> 15-30 minutes<br>
+            <strong>You'll need:</strong> Understanding of your customer base and market position
+        </p>
+    </div>
+
+    <a href="/cdj/wizard/start" class="btn">Start Wizard</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -262,6 +262,72 @@ class UTMAuditLog(Base):
         return f"<UTMAuditLog(action='{self.action}', entity='{self.entity_type}')>"
 
 
+# ============== CDJ Tool Models ==============
+
+class MarketContext(Base):
+    """Global market context - one per user"""
+    __tablename__ = 'cdj_market_context'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+    # Step 1: Market Context (GLOBAL)
+    industry_category = Column(String(500))
+    business_model = Column(String(100))  # B2B, B2C, hybrid
+    purchase_size_range = Column(String(200))
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<MarketContext(user_id={self.user_id}, industry='{self.industry_category}')>"
+
+
+class CustomerSegment(Base):
+    """Customer segment with all decision journey data"""
+    __tablename__ = 'cdj_customer_segments'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+    # Step 2: Segment identification
+    segment_name = Column(String(255), nullable=False)
+    is_primary = Column(Integer, default=0)  # 1 = primary, 0 = secondary
+
+    # Step 3: Segment Definition
+    description = Column(Text)  # One-paragraph description
+    core_jtbd = Column(Text)  # Job-to-be-done
+    primary_problem = Column(Text)
+
+    # Step 4: Economic Reality
+    purchasing_power = Column(String(255))
+    budget_ownership = Column(String(255))
+    price_sensitivity = Column(String(100))  # High, Medium, Low
+
+    # Step 5: Decision Drivers
+    decision_criteria_1 = Column(String(500))
+    decision_criteria_2 = Column(String(500))
+    decision_criteria_3 = Column(String(500))
+    emotional_driver = Column(Text)
+    rational_driver = Column(Text)
+
+    # Step 6: Objections & Friction
+    primary_objection = Column(Text)
+    secondary_objection = Column(Text)
+    biggest_blocker = Column(Text)
+
+    # Step 7: Decision Journey
+    trigger_moment = Column(Text)
+    evaluation_behavior = Column(Text)
+    decision_ending_factor = Column(Text)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<CustomerSegment(name='{self.segment_name}', primary={self.is_primary})>"
+
+
 class Database:
     """Database manager"""
 
@@ -859,17 +925,136 @@ class Database:
         session = self.get_session()
         try:
             total_links = session.query(TrackedLink).filter_by(user_id=user_id).count()
-            
+
             # Get unique campaigns
             campaigns = session.query(TrackedLink.utm_campaign).filter_by(user_id=user_id).distinct().count()
-            
+
             # Get unique channels
             channels = session.query(TrackedLink.channel).filter_by(user_id=user_id).filter(TrackedLink.channel.isnot(None)).distinct().count()
-            
+
             return {
                 'total_links': total_links,
                 'unique_campaigns': campaigns,
                 'unique_channels': channels
             }
+        finally:
+            session.close()
+
+    # ============== CDJ Tool Methods ==============
+
+    def get_market_context(self, user_id):
+        """Get market context for a user"""
+        session = self.get_session()
+        try:
+            return session.query(MarketContext).filter_by(user_id=user_id).first()
+        finally:
+            session.close()
+
+    def save_market_context(self, user_id, industry_category, business_model, purchase_size_range):
+        """Create or update market context"""
+        session = self.get_session()
+        try:
+            context = session.query(MarketContext).filter_by(user_id=user_id).first()
+            if context:
+                context.industry_category = industry_category
+                context.business_model = business_model
+                context.purchase_size_range = purchase_size_range
+                context.updated_at = datetime.utcnow()
+            else:
+                context = MarketContext(
+                    user_id=user_id,
+                    industry_category=industry_category,
+                    business_model=business_model,
+                    purchase_size_range=purchase_size_range
+                )
+                session.add(context)
+            session.commit()
+            return True
+        except Exception as e:
+            session.rollback()
+            print(f"Error saving market context: {e}")
+            return False
+        finally:
+            session.close()
+
+    def get_customer_segments(self, user_id):
+        """Get all customer segments for a user"""
+        session = self.get_session()
+        try:
+            return session.query(CustomerSegment).filter_by(user_id=user_id).order_by(CustomerSegment.is_primary.desc(), CustomerSegment.segment_name).all()
+        finally:
+            session.close()
+
+    def get_customer_segment_by_id(self, segment_id, user_id):
+        """Get a specific customer segment"""
+        session = self.get_session()
+        try:
+            return session.query(CustomerSegment).filter_by(id=segment_id, user_id=user_id).first()
+        finally:
+            session.close()
+
+    def create_customer_segment(self, user_id, segment_name, is_primary=0):
+        """Create a new customer segment"""
+        session = self.get_session()
+        try:
+            segment = CustomerSegment(
+                user_id=user_id,
+                segment_name=segment_name,
+                is_primary=is_primary
+            )
+            session.add(segment)
+            session.commit()
+            return segment.id
+        except Exception as e:
+            session.rollback()
+            print(f"Error creating customer segment: {e}")
+            return None
+        finally:
+            session.close()
+
+    def update_customer_segment(self, segment_id, user_id, **kwargs):
+        """Update a customer segment with any fields"""
+        session = self.get_session()
+        try:
+            segment = session.query(CustomerSegment).filter_by(id=segment_id, user_id=user_id).first()
+            if segment:
+                for key, value in kwargs.items():
+                    if hasattr(segment, key):
+                        setattr(segment, key, value)
+                segment.updated_at = datetime.utcnow()
+                session.commit()
+                return True
+            return False
+        except Exception as e:
+            session.rollback()
+            print(f"Error updating customer segment: {e}")
+            return False
+        finally:
+            session.close()
+
+    def delete_customer_segment(self, segment_id, user_id):
+        """Delete a customer segment"""
+        session = self.get_session()
+        try:
+            segment = session.query(CustomerSegment).filter_by(id=segment_id, user_id=user_id).first()
+            if segment:
+                session.delete(segment)
+                session.commit()
+                return True
+            return False
+        except Exception as e:
+            session.rollback()
+            print(f"Error deleting customer segment: {e}")
+            return False
+        finally:
+            session.close()
+
+    def cdj_wizard_completed(self, user_id):
+        """Check if CDJ wizard has been completed (has market context and at least one segment)"""
+        session = self.get_session()
+        try:
+            has_context = session.query(MarketContext).filter_by(user_id=user_id).first() is not None
+            has_segments = session.query(CustomerSegment).filter_by(user_id=user_id).count() > 0
+            return has_context and has_segments
         finally:
             session.close()

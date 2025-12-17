@@ -58,7 +58,7 @@ Rev Content Tools is an integrated platform designed to streamline the content m
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.11+
 - OpenAI API key
 
 ### Installation
@@ -66,7 +66,7 @@ Rev Content Tools is an integrated platform designed to streamline the content m
 ```bash
 # Clone the repository
 git clone https://github.com/hallstephenj/rev-content-tools.git
-cd rev-content-tools/SEO-tool
+cd rev-content-tools
 
 # Install dependencies
 pip install -r requirements.txt
@@ -133,8 +133,10 @@ Create a `.env` file with the following variables:
 # Required
 OPENAI_API_KEY=your_openai_api_key
 
-# Optional
+# Required for production
 FLASK_SECRET_KEY=your_secret_key
+
+# Optional
 FLASK_ENV=development
 DATABASE_URL=sqlite:///seo_content.db
 ```
@@ -144,28 +146,32 @@ DATABASE_URL=sqlite:///seo_content.db
 ## Project Structure
 
 ```
-SEO-tool/
+rev-content-tools/
 ├── app.py                 # Flask web application
 ├── config.py              # Configuration settings
 ├── models.py              # Database models
 ├── scraper.py             # Website content scraper
 ├── content_generator.py   # AI content generation
 ├── seo_analyzer.py        # SEO analysis engine
+├── wsgi.py                # Production WSGI entry point
 ├── requirements.txt       # Python dependencies
-├── templates/
-│   ├── base.html          # Base template
-│   ├── index.html         # Dashboard
-│   ├── scrape.html        # Scraper interface
-│   ├── generate.html      # Content generator
-│   ├── analyze.html       # SEO analyzer
-│   └── utm/               # UTM tool templates
-│       ├── index.html
-│       ├── generate.html
-│       ├── library.html
-│       ├── policy.html
-│       ├── channels.html
-│       └── audit.html
-└── wsgi.py                # Production WSGI entry point
+├── railway.toml           # Railway deployment config
+├── nixpacks.toml          # Nixpacks build config
+├── runtime.txt            # Python version specification
+├── Procfile               # Process file (Heroku/Railway)
+└── templates/
+    ├── base.html          # Base template
+    ├── index.html         # Dashboard
+    ├── scrape.html        # Scraper interface
+    ├── generate.html      # Content generator
+    ├── analyze.html       # SEO analyzer
+    └── utm/               # UTM tool templates
+        ├── index.html
+        ├── generate.html
+        ├── library.html
+        ├── policy.html
+        ├── channels.html
+        └── audit.html
 ```
 
 ---
@@ -194,23 +200,57 @@ Content is evaluated across six dimensions:
 
 ### Railway (Recommended)
 
-This project is configured for one-click Railway deployment:
+This project is configured for one-click Railway deployment with Nixpacks.
 
-1. Connect your GitHub repository to Railway
-2. Set environment variables:
-   - `FLASK_SECRET_KEY` (required)
-   - `OPENAI_API_KEY` (required for AI features)
-   - `DATABASE_URL` (optional — defaults to SQLite)
+#### Step 1: Connect Repository
 
-3. Deploy!
+1. Go to [railway.app](https://railway.app) and create a new project
+2. Select "Deploy from GitHub repo"
+3. Connect your `rev-content-tools` repository
 
-**Note**: For persistent data on Railway, attach a Volume or use Railway Postgres.
+#### Step 2: Set Environment Variables
+
+In your Railway service settings, add these variables:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `FLASK_SECRET_KEY` | ✅ Yes | Random string for session security (use `openssl rand -hex 32`) |
+| `OPENAI_API_KEY` | ✅ Yes | Your OpenAI API key for AI features |
+| `DATABASE_URL` | ❌ No | Database connection string (see below) |
+
+#### Step 3: Configure Database Persistence
+
+Railway's filesystem is **ephemeral** — data stored in SQLite will be lost on each deploy. Choose one of these options:
+
+**Option A: Railway Volume (Simple)**
+1. In your Railway service, go to Settings → Volumes
+2. Add a new volume mounted at `/app/data`
+3. Set `DATABASE_URL=sqlite:////app/data/seo_content.db`
+
+**Option B: Railway Postgres (Recommended for production)**
+1. In your Railway project, click "New" → "Database" → "PostgreSQL"
+2. Railway automatically sets the `DATABASE_URL` variable
+3. The app will use Postgres instead of SQLite
+
+#### Step 4: Deploy
+
+Railway will automatically build and deploy. Your app will be live at `https://your-app.up.railway.app`
 
 ### Manual Deployment
 
 ```bash
-gunicorn wsgi:app --bind 0.0.0.0:5000 --workers 2 --threads 4
+# Set environment variables
+export FLASK_SECRET_KEY="your-secret-key"
+export OPENAI_API_KEY="your-api-key"
+export DATABASE_URL="sqlite:///seo_content.db"
+
+# Run with Gunicorn
+gunicorn wsgi:app --bind 0.0.0.0:5000 --workers 2 --threads 4 --timeout 120
 ```
+
+### Known Limitations
+
+- **Selenium/Browser scraping**: The scraper includes Selenium for JavaScript-heavy sites, but this requires a browser runtime not available on Railway. The scraper will fall back to requests-based scraping for most sites.
 
 ---
 

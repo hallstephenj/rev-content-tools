@@ -1,34 +1,65 @@
-# macOS
-.DS_Store
-
-# Archives
-*.zip
-
 # Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-.Python
+*$py.class
 *.so
-
-# Environment
-.env
-.venv/
-venv/
+.Python
 env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Database files
+# Environment variables
+.env
+
+# Database
 *.db
 *.sqlite
 *.sqlite3
 
-# IDE
-.idea/
+# IDEs
 .vscode/
+.idea/
 *.swp
 *.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Logs
 *.log
+logs/
 
+# Downloaded content
+downloads/
+scraped_content/
+
+# Generated content
+generated_content/
+
+# Local env/tooling (keep out of deploys)
+.venv/
+.conda/
+.mamba/
+.local/
+.pip-cache/
+.tools/
+
+# Archives
+*.zip

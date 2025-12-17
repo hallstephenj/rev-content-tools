@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    /* Filter tabs */
+    .filter-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .filter-tab {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        background: #fff !important;
+        color: #666 !important;
+        font-size: 12px;
+        font-weight: 450;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.1s ease;
+    }
+
+    .filter-tab:hover {
+        background: #f5f5f5 !important;
+        border-color: #ccc;
+        color: #1a1a1a !important;
+    }
+
+    .filter-tab.active {
+        background: #1a1a1a !important;
+        border-color: #1a1a1a;
+        color: #fff !important;
+    }
+
+    .filter-tab.active:hover {
+        background: #333 !important;
+        color: #fff !important;
+    }
+
+    .filter-tab .count {
+        opacity: 0.6;
+        font-size: 11px;
+        margin-left: 4px;
+    }
+
+    .filter-tab.active .count {
+        opacity: 0.7;
+    }
+
+    .toggle-minor-btn {
+        padding: 6px 12px;
+        border: 1px dashed #ccc;
+        border-radius: 3px;
+        background: transparent !important;
+        color: #888 !important;
+        font-size: 12px;
+        font-weight: 450;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.1s ease;
+    }
+
+    .toggle-minor-btn:hover {
+        background: #f9f9f9 !important;
+        border-color: #aaa;
+        color: #666 !important;
+    }
+
+    .toggle-minor-btn.active {
+        border-style: solid;
+        border-color: #888;
+        color: #666 !important;
+    }
+
+    /* Pillar cloud */
+    .pillar-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 20px;
+        background: #fafafa;
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
+
+    .pillar-tag {
+        display: inline-block;
+        padding: 10px 18px;
+        background: #1a1a1a;
+        color: #fff;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .pillar-tag:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .pillar-tag:nth-child(1) { background: #1a1a1a; }
+    .pillar-tag:nth-child(2) { background: #2d2d2d; }
+    .pillar-tag:nth-child(3) { background: #404040; }
+    .pillar-tag:nth-child(4) { background: #525252; }
+    .pillar-tag:nth-child(5) { background: #666666; }
+    .pillar-tag:nth-child(6) { background: #1a1a1a; }
+    .pillar-tag:nth-child(7) { background: #2d2d2d; }
+    .pillar-tag:nth-child(8) { background: #404040; }
+    .pillar-tag:nth-child(9) { background: #525252; }
+    .pillar-tag:nth-child(10) { background: #666666; }
+
+    /* Analysis output */
+    .analysis-output {
+        font-size: 13px;
+        line-height: 1.7;
+        color: #333;
+    }
+
+    .analysis-output h2 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 20px 0 10px 0;
+        border-bottom: 1px solid #e5e5e5;
+        padding-bottom: 6px;
+    }
+
+    .analysis-output h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 16px 0 8px 0;
+    }
+
+    .analysis-output h4 {
+        font-size: 13px;
+        font-weight: 500;
+        color: #333;
+        margin: 12px 0 6px 0;
+    }
+
+    .analysis-output ul {
+        margin: 8px 0 8px 20px;
+    }
+
+    .analysis-output li {
+        margin: 4px 0;
+        color: #444;
+    }
+
+    .analysis-output strong {
+        color: #1a1a1a;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Surface Implicit Topic Clusters</h2>
+    <p>Analyze article titles to identify core themes, detect duplication, and surface pillar-content opportunities.</p>
+
+    <form id="analyzeForm" style="margin-top: 20px;">
+        <div class="form-group">
+            <label>Filter by Subdirectory</label>
+            <p style="font-size: 12px; color: #888; margin-bottom: 8px;">Select which section of your site to analyze</p>
+            
+            <div class="filter-tabs" id="analyzeFilterTabs">
+                <button type="button" class="filter-tab active" data-subdir="all" onclick="selectAnalyzeSubdir('all', this)">
+                    All <span class="count">({{ total_pages }})</span>
+                </button>
+                {% for subdir in major_subdirs %}
+                <button type="button" class="filter-tab" data-subdir="{{ subdir }}" onclick="selectAnalyzeSubdir('{{ subdir }}', this)">
+                    {{ subdir }} <span class="count">({{ subdir_counts[subdir] }})</span>
+                </button>
+                {% endfor %}
+                
+                {% if minor_subdirs %}
+                <div class="minor-subdirs-container" style="display: inline-flex; flex-wrap: wrap; gap: 6px;">
+                    <button type="button" class="toggle-minor-btn" onclick="toggleAnalyzeMinorSubdirs(this)">
+                        Show {{ minor_subdirs|length }} minor
+                    </button>
+                    <div class="minor-subdirs" id="analyzeMinorSubdirs" style="display: none; gap: 6px;">
+                        {% for subdir in minor_subdirs %}
+                        <button type="button" class="filter-tab" data-subdir="{{ subdir }}" onclick="selectAnalyzeSubdir('{{ subdir }}', this)">
+                            {{ subdir }} <span class="count">({{ subdir_counts[subdir] }})</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <input type="hidden" name="subdirectory" id="analyzeSubdirectory" value="all">
+        </div>
+
+        <button type="button" onclick="runAnalysis()">Analyze Titles</button>
+    </form>
+
+    <div id="analyzeResults" style="margin-top: 24px;"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectAnalyzeSubdir(subdir, btn) {
+    document.getElementById('analyzeSubdirectory').value = subdir;
+    
+    document.querySelectorAll('#analyzeFilterTabs .filter-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    btn.classList.add('active');
+}
+
+function toggleAnalyzeMinorSubdirs(btn) {
+    const container = document.getElementById('analyzeMinorSubdirs');
+    const isHidden = container.style.display === 'none';
+    container.style.display = isHidden ? 'inline-flex' : 'none';
+    btn.textContent = isHidden ? 'Hide minor' : 'Show {{ minor_subdirs|length }} minor';
+    btn.classList.toggle('active', isHidden);
+}
+
+async function runAnalysis() {
+    const formData = new FormData(document.getElementById('analyzeForm'));
+    const resultsDiv = document.getElementById('analyzeResults');
+    const selectedSubdir = document.getElementById('analyzeSubdirectory').value;
+    const subdirLabel = selectedSubdir === 'all' ? 'all pages' : selectedSubdir;
+
+    resultsDiv.innerHTML = `<div class="alert alert-success">Analyzing titles from ${subdirLabel}... This may take a minute.</div>`;
+
+    try {
+        const response = await fetch('/api/analyze-clusters', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Build pillar cloud
+            let pillarsHtml = '<div class="pillar-cloud">';
+            if (data.pillars && data.pillars.length > 0) {
+                data.pillars.forEach(pillar => {
+                    pillarsHtml += `<span class="pillar-tag">${escapeHtml(pillar)}</span>`;
+                });
+            } else {
+                pillarsHtml += '<span style="color: #888;">No pillars detected</span>';
+            }
+            pillarsHtml += '</div>';
+
+            // Render analysis markdown
+            const analysisHtml = renderMarkdown(data.analysis || '');
+
+            resultsDiv.innerHTML = `
+                <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #1a1a1a;">Top 10 Content Pillars</h3>
+                ${pillarsHtml}
+                <div style="background: #fff; border: 1px solid #e5e5e5; border-radius: 4px; padding: 20px;">
+                    <div class="analysis-output">${analysisHtml}</div>
+                </div>
+            `;
+        } else {
+            resultsDiv.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+        }
+    } catch (error) {
+        resultsDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
+
+function renderMarkdown(md) {
+    let html = md
+        .replace(/^#### (.*$)/gm, '<h4>$1</h4>')
+        .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gm, '<h2>$1</h2>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/^\s*[-*]\s+(.*)$/gm, '<li>$1</li>')
+        .replace(/^\s*\d+\.\s+(.*)$/gm, '<li>$1</li>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
+    
+    html = html.replace(/(<li>.*?<\/li>)+/gs, function(match) {
+        return '<ul>' + match + '</ul>';
+    });
+    
+    return '<p>' + html + '</p>';
+}
+</script>
+{% endblock %}
+
+

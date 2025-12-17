@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .article-item {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 4px;
+        padding: 14px 16px;
+        margin-bottom: 8px;
+        display: block;
+        text-decoration: none;
+        transition: background 0.1s ease;
+    }
+
+    .article-item:hover {
+        background: #fafafa;
+    }
+
+    .article-item h4 {
+        font-size: 13px;
+        font-weight: 500;
+        color: #1a1a1a;
+        margin: 0 0 6px 0;
+    }
+
+    .article-item .meta {
+        font-size: 12px;
+        color: #888;
+        margin: 0;
+    }
+
+    .article-item .meta span {
+        margin-right: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Generated Articles</h2>
+    <p>{{ content|length }} article{% if content|length != 1 %}s{% endif %}</p>
+
+    {% if content %}
+        <div style="margin-top: 20px;">
+        {% for item in content %}
+            <a href="/generated/{{ item.id }}" class="article-item">
+                <h4>{{ item.title }}</h4>
+                <p class="meta">
+                    <span>{{ item.word_count or 0 }} words</span>
+                    {% if item.generated_at %}
+                    <span>{{ item.generated_at.strftime('%Y-%m-%d') }}</span>
+                    {% endif %}
+                    {% if item.seo_score %}
+                    <span class="seo-score {% if item.seo_score >= 70 %}high{% elif item.seo_score >= 50 %}medium{% else %}low{% endif %}">
+                        {{ item.seo_score|int }}/100
+                    </span>
+                    {% endif %}
+                </p>
+            </a>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert" style="margin-top: 20px;">
+            No generated articles yet. <a href="/generate">Generate your first article</a>.
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Topic Clusters</h2>
+    <p>{{ topic_clusters|length }} cluster strateg{% if topic_clusters|length != 1 %}ies{% else %}y{% endif %}</p>
+
+    {% if topic_clusters %}
+        <div style="margin-top: 20px;">
+        {% for cluster in topic_clusters %}
+            <a href="/topic-cluster/{{ cluster.id }}" class="article-item">
+                <h4>{{ cluster.title }}</h4>
+                <p class="meta">
+                    {% if cluster.subdirectory %}
+                    <span>{{ cluster.subdirectory }}</span>
+                    {% endif %}
+                    <span>{{ cluster.num_samples or 0 }} pages analyzed</span>
+                    {% if cluster.generated_at %}
+                    <span>{{ cluster.generated_at.strftime('%Y-%m-%d') }}</span>
+                    {% endif %}
+                </p>
+            </a>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert" style="margin-top: 20px;">
+            No topic clusters yet. <a href="/generate">Generate your first topic cluster strategy</a>.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

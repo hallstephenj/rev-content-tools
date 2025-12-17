@@ -1,0 +1,697 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .topic-item {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 4px;
+        padding: 14px 16px;
+        margin-bottom: 8px;
+    }
+
+    .topic-item h4 {
+        font-size: 13px;
+        font-weight: 500;
+        margin: 0 0 6px 0;
+    }
+
+    .topic-item p {
+        font-size: 13px;
+        color: #666;
+        margin: 0 0 4px 0;
+    }
+
+    .topic-item .keywords {
+        font-size: 12px;
+        color: #888;
+    }
+
+    .section-divider {
+        border-top: 1px solid #e5e5e5;
+        margin: 24px 0;
+    }
+
+    /* Context picker styles */
+    .context-picker {
+        margin-top: 12px;
+    }
+
+    .context-search-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .context-search-row input {
+        flex: 1;
+    }
+
+    .context-results {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #e5e5e5;
+        border-radius: 4px;
+        background: #fafafa;
+    }
+
+    .context-result-item {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e5e5;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        transition: background 0.1s ease;
+    }
+
+    .context-result-item:last-child {
+        border-bottom: none;
+    }
+
+    .context-result-item:hover {
+        background: #f0f0f0;
+    }
+
+    .context-result-item.selected {
+        background: #e8f5e8;
+    }
+
+    .context-result-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .context-result-title {
+        font-size: 13px;
+        font-weight: 500;
+        color: #1a1a1a;
+        margin: 0 0 2px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .context-result-meta {
+        font-size: 11px;
+        color: #888;
+    }
+
+    .context-result-add {
+        font-size: 12px;
+        padding: 4px 10px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .context-result-add:hover {
+        background: #f5f5f5;
+    }
+
+    .context-selected {
+        margin-top: 12px;
+    }
+
+    .context-selected-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .context-selected-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        background: #e8f5e8;
+        border: 1px solid #c8e6c8;
+        border-radius: 4px;
+        font-size: 12px;
+        color: #2d5a2d;
+    }
+
+    .context-selected-item .remove {
+        cursor: pointer;
+        opacity: 0.6;
+        font-weight: bold;
+    }
+
+    .context-selected-item .remove:hover {
+        opacity: 1;
+    }
+
+    .context-empty {
+        padding: 20px;
+        text-align: center;
+        color: #888;
+        font-size: 13px;
+    }
+
+    .context-hint {
+        font-size: 12px;
+        color: #888;
+        margin-top: 4px;
+    }
+
+    /* Filter tabs for topic clusters */
+    .filter-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .filter-tab {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        background: #fff !important;
+        color: #666 !important;
+        font-size: 12px;
+        font-weight: 450;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.1s ease;
+    }
+
+    .filter-tab:hover {
+        background: #f5f5f5 !important;
+        border-color: #ccc;
+        color: #1a1a1a !important;
+    }
+
+    .filter-tab.active {
+        background: #1a1a1a !important;
+        border-color: #1a1a1a;
+        color: #fff !important;
+    }
+
+    .filter-tab.active:hover {
+        background: #333 !important;
+        color: #fff !important;
+    }
+
+    .filter-tab .count {
+        opacity: 0.6;
+        font-size: 11px;
+        margin-left: 4px;
+    }
+
+    .filter-tab.active .count {
+        opacity: 0.7;
+    }
+
+    .toggle-minor-btn {
+        padding: 6px 12px;
+        border: 1px dashed #ccc;
+        border-radius: 3px;
+        background: transparent !important;
+        color: #888 !important;
+        font-size: 12px;
+        font-weight: 450;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.1s ease;
+    }
+
+    .toggle-minor-btn:hover {
+        background: #f9f9f9 !important;
+        border-color: #aaa;
+        color: #666 !important;
+    }
+
+    .toggle-minor-btn.active {
+        border-style: solid;
+        border-color: #888;
+        color: #666 !important;
+    }
+
+    /* Cluster output styles */
+    .cluster-output {
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    .cluster-output h2 {
+        color: #1a1a1a;
+        font-weight: 600;
+    }
+
+    .cluster-output h3 {
+        color: #1a1a1a;
+        font-weight: 600;
+    }
+
+    .cluster-output h4 {
+        color: #333;
+        font-weight: 500;
+    }
+
+    .cluster-output ul {
+        list-style-type: disc;
+    }
+
+    .cluster-output li {
+        color: #444;
+    }
+
+    .cluster-output strong {
+        color: #1a1a1a;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="generateStatus"></div>
+
+<div class="card">
+    <h2>Generate Content</h2>
+    <p>Create an SEO-optimized article based on scraped content patterns.</p>
+
+    <form id="generateForm" style="margin-top: 20px;">
+        <div class="form-group">
+            <label for="topic">Title</label>
+            <input type="text" id="topic" name="topic" required placeholder="The Future of Bitcoin Security">
+            <p style="font-size: 12px; color: #888; margin-top: 4px;">This exact title will be used for the generated article.</p>
+        </div>
+
+        <div class="form-group">
+            <label for="keywords">Target Keywords</label>
+            <input type="text" id="keywords" name="keywords" placeholder="bitcoin security, cryptocurrency safety">
+            <p style="font-size: 12px; color: #888; margin-top: 4px;">Comma-separated</p>
+        </div>
+
+        <div class="form-group">
+            <label for="word_count">Word Count</label>
+            <input type="number" id="word_count" name="word_count" value="1500" min="300" max="5000" style="max-width: 120px;">
+        </div>
+
+        <div class="form-group">
+            <label for="custom_instructions">Custom Instructions <span style="font-weight: 400; color: #888;">(optional)</span></label>
+            <textarea id="custom_instructions" name="custom_instructions" rows="4" placeholder="Add any special instructions to shape the output, e.g. 'Write in a conversational tone' or 'Include a FAQ section at the end'"></textarea>
+            <p style="font-size: 12px; color: #888; margin-top: 4px;">These instructions will be included in the prompt to the AI.</p>
+        </div>
+
+        <div class="form-group">
+            <label>Context Sources <span style="font-weight: 400; color: #888;">(optional)</span></label>
+            <p class="context-hint">Select scraped content to use as context. Search updates based on Title and Keywords above.</p>
+            
+            <div class="context-picker">
+                <div class="context-search-row">
+                    <input type="text" id="contextSearch" placeholder="Search scraped content..." autocomplete="off">
+                    <button type="button" onclick="searchContext()" class="btn-secondary" style="padding: 10px 16px;">Search</button>
+                </div>
+                
+                <div class="context-results" id="contextResults" style="display: none;"></div>
+                
+                <div class="context-selected" id="contextSelected" style="display: none;">
+                    <p style="font-size: 12px; color: #666; margin-bottom: 6px;">Selected context:</p>
+                    <div class="context-selected-list" id="contextSelectedList"></div>
+                </div>
+            </div>
+            
+            <input type="hidden" name="context_ids" id="contextIds" value="">
+        </div>
+
+        <button type="submit" id="generateBtn">Generate</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Topic Ideas</h2>
+    <p>Generate topic suggestions based on your scraped content.</p>
+
+    <form id="topicForm" style="margin-top: 20px;">
+        <div class="form-group">
+            <label for="niche">Niche (optional)</label>
+            <input type="text" id="niche" name="niche" placeholder="cryptocurrency, fintech">
+        </div>
+
+        <div class="form-group">
+            <label for="num_topics">Count</label>
+            <input type="number" id="num_topics" name="num_topics" value="10" min="1" max="20" style="max-width: 80px;">
+        </div>
+
+        <button type="button" onclick="generateTopics()">Generate Ideas</button>
+    </form>
+
+    <div id="topics" style="margin-top: 20px;"></div>
+</div>
+
+<div class="card">
+    <h2>Topic Clusters</h2>
+    <p>Generate a strategic topic cluster plan based on your scraped content. Analyzes themes, intent patterns, and builds pillar + supporting content recommendations.</p>
+
+    <form id="clusterForm" style="margin-top: 20px;">
+        <div class="form-group">
+            <label>Filter by Subdirectory</label>
+            <p style="font-size: 12px; color: #888; margin-bottom: 8px;">Select which section of your site to analyze</p>
+            
+            <div class="filter-tabs" id="clusterFilterTabs">
+                <button type="button" class="filter-tab active" data-subdir="all" onclick="selectClusterSubdir('all', this)">
+                    All <span class="count">({{ total_pages }})</span>
+                </button>
+                {% for subdir in major_subdirs %}
+                <button type="button" class="filter-tab" data-subdir="{{ subdir }}" onclick="selectClusterSubdir('{{ subdir }}', this)">
+                    {{ subdir }} <span class="count">({{ subdir_counts[subdir] }})</span>
+                </button>
+                {% endfor %}
+                
+                {% if minor_subdirs %}
+                <div class="minor-subdirs-container" style="display: inline-flex; flex-wrap: wrap; gap: 6px;">
+                    <button type="button" class="toggle-minor-btn" onclick="toggleClusterMinorSubdirs(this)">
+                        Show {{ minor_subdirs|length }} minor
+                    </button>
+                    <div class="minor-subdirs" id="clusterMinorSubdirs" style="display: none; gap: 6px;">
+                        {% for subdir in minor_subdirs %}
+                        <button type="button" class="filter-tab" data-subdir="{{ subdir }}" onclick="selectClusterSubdir('{{ subdir }}', this)">
+                            {{ subdir }} <span class="count">({{ subdir_counts[subdir] }})</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <input type="hidden" name="subdirectory" id="clusterSubdirectory" value="all">
+        </div>
+
+        <div class="form-group">
+            <label for="num_samples">Max Pages to Analyze</label>
+            <input type="number" id="num_samples" name="num_samples" value="50" min="10" max="100" style="max-width: 100px;">
+            <p style="font-size: 12px; color: #888; margin-top: 4px;">Random sample from selected subdirectory</p>
+        </div>
+
+        <button type="button" onclick="generateTopicClusters()">Generate Topic Clusters</button>
+    </form>
+
+    <div id="clusterResults" style="margin-top: 20px;"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Context picker state
+const selectedContext = new Map(); // id -> {id, title, url}
+
+// Auto-search when title or keywords change
+let searchDebounce = null;
+document.getElementById('topic').addEventListener('input', debounceContextSearch);
+document.getElementById('keywords').addEventListener('input', debounceContextSearch);
+
+function debounceContextSearch() {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+        const title = document.getElementById('topic').value.trim();
+        const keywords = document.getElementById('keywords').value.trim();
+        const query = [title, keywords].filter(Boolean).join(' ');
+        if (query.length >= 2) {
+            document.getElementById('contextSearch').value = query;
+            searchContext();
+        }
+    }, 500);
+}
+
+async function searchContext() {
+    const query = document.getElementById('contextSearch').value.trim();
+    const resultsDiv = document.getElementById('contextResults');
+    
+    try {
+        const response = await fetch(`/api/search-content?q=${encodeURIComponent(query)}&limit=15`);
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = data.results.map(item => `
+                <div class="context-result-item ${selectedContext.has(item.id) ? 'selected' : ''}" data-id="${item.id}">
+                    <div class="context-result-info">
+                        <div class="context-result-title">${escapeHtml(item.title)}</div>
+                        <div class="context-result-meta">${item.domain || ''} · ${item.word_count || 0} words</div>
+                    </div>
+                    <button type="button" class="context-result-add" onclick="toggleContext(${item.id}, '${escapeJs(item.title)}', '${escapeJs(item.url)}')">
+                        ${selectedContext.has(item.id) ? '✓ Added' : '+ Add'}
+                    </button>
+                </div>
+            `).join('');
+        } else {
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="context-empty">No matching content found</div>';
+        }
+    } catch (error) {
+        resultsDiv.style.display = 'block';
+        resultsDiv.innerHTML = `<div class="context-empty">Error: ${error.message}</div>`;
+    }
+}
+
+function toggleContext(id, title, url) {
+    if (selectedContext.has(id)) {
+        selectedContext.delete(id);
+    } else {
+        selectedContext.set(id, { id, title, url });
+    }
+    updateSelectedDisplay();
+    updateContextIds();
+    // Re-render results to update button states
+    const resultItem = document.querySelector(`.context-result-item[data-id="${id}"]`);
+    if (resultItem) {
+        resultItem.classList.toggle('selected', selectedContext.has(id));
+        const btn = resultItem.querySelector('.context-result-add');
+        if (btn) {
+            btn.textContent = selectedContext.has(id) ? '✓ Added' : '+ Add';
+        }
+    }
+}
+
+function removeContext(id) {
+    selectedContext.delete(id);
+    updateSelectedDisplay();
+    updateContextIds();
+    // Update result item if visible
+    const resultItem = document.querySelector(`.context-result-item[data-id="${id}"]`);
+    if (resultItem) {
+        resultItem.classList.remove('selected');
+        const btn = resultItem.querySelector('.context-result-add');
+        if (btn) btn.textContent = '+ Add';
+    }
+}
+
+function updateSelectedDisplay() {
+    const container = document.getElementById('contextSelected');
+    const list = document.getElementById('contextSelectedList');
+    
+    if (selectedContext.size === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    list.innerHTML = Array.from(selectedContext.values()).map(item => `
+        <span class="context-selected-item">
+            ${escapeHtml(item.title.substring(0, 40))}${item.title.length > 40 ? '...' : ''}
+            <span class="remove" onclick="removeContext(${item.id})">×</span>
+        </span>
+    `).join('');
+}
+
+function updateContextIds() {
+    document.getElementById('contextIds').value = Array.from(selectedContext.keys()).join(',');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
+
+function escapeJs(text) {
+    return (text || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+document.getElementById('generateForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const statusDiv = document.getElementById('generateStatus');
+    const submitBtn = document.getElementById('generateBtn');
+    const title = formData.get('topic');
+    
+    // Disable button and show loading state
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Generating...';
+    
+    statusDiv.innerHTML = `
+        <div class="card" style="background: #f0fdf0; border-color: #86efac; margin-bottom: 16px;">
+            <p style="margin: 0; color: #166534;">
+                <strong>✓ Generation started!</strong><br>
+                Your article "<em>${title}</em>" is being created. This may take a minute.<br>
+                Check <a href="/generated-content" style="color: #166534; font-weight: 500;">Generated Content</a> for results.
+            </p>
+        </div>
+    `;
+    
+    // Scroll to top to show the message
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    try {
+        const response = await fetch('/generate', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            statusDiv.innerHTML = `
+                <div class="card" style="background: #f0fdf0; border-color: #86efac; margin-bottom: 16px;">
+                    <p style="margin: 0; color: #166534;">
+                        <strong>✓ Content generated successfully!</strong><br>
+                        "<em>${title}</em>" is ready.<br>
+                        <a href="/view-generated/${data.content_id}" style="color: #166534; font-weight: 500;">View your article →</a>
+                    </p>
+                </div>
+            `;
+        } else {
+            statusDiv.innerHTML = `
+                <div class="card" style="background: #fef2f2; border-color: #fca5a5; margin-bottom: 16px;">
+                    <p style="margin: 0; color: #991b1b;">
+                        <strong>Error:</strong> ${data.error || 'Failed to generate content'}
+                    </p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `
+            <div class="card" style="background: #fef2f2; border-color: #fca5a5; margin-bottom: 16px;">
+                <p style="margin: 0; color: #991b1b;">
+                    <strong>Error:</strong> ${error.message}
+                </p>
+            </div>
+        `;
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Generate';
+    }
+});
+
+async function generateTopics() {
+    const formData = new FormData(document.getElementById('topicForm'));
+    const topicsDiv = document.getElementById('topics');
+
+    topicsDiv.innerHTML = '<div class="alert alert-success">Generating topic ideas...</div>';
+
+    try {
+        const response = await fetch('/generate-topics', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.topics) {
+            let html = '<p style="font-size: 12px; color: #888; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.03em;">Suggestions</p>';
+            data.topics.forEach(topic => {
+                html += `
+                    <div class="topic-item">
+                        <h4>${topic.title}</h4>
+                        <p>${topic.description}</p>
+                        <p class="keywords">Keywords: ${topic.target_keywords.join(', ')}</p>
+                    </div>
+                `;
+            });
+            topicsDiv.innerHTML = html;
+        } else {
+            topicsDiv.innerHTML = `<div class="alert alert-error">${data.error || 'Failed to generate topics'}</div>`;
+        }
+    } catch (error) {
+        topicsDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+    }
+}
+
+function selectClusterSubdir(subdir, btn) {
+    // Update hidden input
+    document.getElementById('clusterSubdirectory').value = subdir;
+    
+    // Update active state on tabs
+    document.querySelectorAll('#clusterFilterTabs .filter-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    btn.classList.add('active');
+}
+
+function toggleClusterMinorSubdirs(btn) {
+    const container = document.getElementById('clusterMinorSubdirs');
+    const isHidden = container.style.display === 'none';
+    container.style.display = isHidden ? 'inline-flex' : 'none';
+    btn.textContent = isHidden ? 'Hide minor' : 'Show {{ minor_subdirs|length }} minor';
+    btn.classList.toggle('active', isHidden);
+}
+
+async function generateTopicClusters() {
+    const formData = new FormData(document.getElementById('clusterForm'));
+    const resultsDiv = document.getElementById('clusterResults');
+    const selectedSubdir = document.getElementById('clusterSubdirectory').value;
+    const subdirLabel = selectedSubdir === 'all' ? 'all pages' : `${selectedSubdir}`;
+
+    resultsDiv.innerHTML = `<div class="alert alert-success">Analyzing ${subdirLabel} and generating topic clusters... This may take a minute.</div>`;
+
+    try {
+        const response = await fetch('/generate-topic-clusters', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Render markdown as HTML (basic conversion)
+            const markdown = data.clusters;
+            const html = renderMarkdown(markdown);
+            const clusterId = data.cluster_id;
+            resultsDiv.innerHTML = `
+                <div class="alert alert-success" style="margin-bottom: 16px;">
+                    ✓ Topic cluster saved! <a href="/topic-cluster/${clusterId}" style="color: #166534; font-weight: 500;">View saved cluster →</a>
+                    or <a href="/generated-content" style="color: #166534;">see all generated content</a>
+                </div>
+                <div style="background: #fff; border: 1px solid #e5e5e5; border-radius: 4px; padding: 20px;">
+                    <div class="cluster-output">${html}</div>
+                </div>
+            `;
+        } else {
+            resultsDiv.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+        }
+    } catch (error) {
+        resultsDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+    }
+}
+
+function renderMarkdown(md) {
+    // Basic markdown to HTML conversion
+    let html = md
+        // Headers
+        .replace(/^### (.*$)/gm, '<h4 style="margin: 16px 0 8px 0; font-size: 14px;">$1</h4>')
+        .replace(/^## (.*$)/gm, '<h3 style="margin: 20px 0 10px 0; font-size: 15px; border-bottom: 1px solid #e5e5e5; padding-bottom: 6px;">$1</h3>')
+        .replace(/^# (.*$)/gm, '<h2 style="margin: 24px 0 12px 0; font-size: 16px;">$1</h2>')
+        // Bold
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        // Italic
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        // Unordered lists
+        .replace(/^\s*[-*]\s+(.*)$/gm, '<li style="margin: 4px 0;">$1</li>')
+        // Numbered lists
+        .replace(/^\s*\d+\.\s+(.*)$/gm, '<li style="margin: 4px 0;">$1</li>')
+        // Paragraphs (double newline)
+        .replace(/\n\n/g, '</p><p style="margin: 10px 0; color: #444;">')
+        // Single newlines to <br> within paragraphs
+        .replace(/\n/g, '<br>');
+    
+    // Wrap consecutive <li> in <ul>
+    html = html.replace(/(<li[^>]*>.*?<\/li>)+/g, '<ul style="margin: 8px 0 8px 20px; padding: 0;">$&</ul>');
+    
+    return '<p style="margin: 10px 0; color: #444;">' + html + '</p>';
+}
+</script>
+{% endblock %}

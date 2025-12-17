@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="stats">
+    <div class="stat-card">
+        <h3>{{ stats.scraped_pages }}</h3>
+        <p>Pages Scraped</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.generated_articles }}</h3>
+        <p>Articles Generated</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.unique_domains }}</h3>
+        <p>Domains</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Content Intelligence</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Scrape website content, analyze patterns, and generate SEO-optimized articles at scale.
+    </p>
+
+    <h3>Workflow</h3>
+    <ol>
+        <li><strong>Scrape</strong> — Download content from any website or subdirectory</li>
+        <li><strong>Analyze</strong> — System identifies style, tone, and topic patterns</li>
+        <li><strong>Generate</strong> — Create new articles matching your source material</li>
+        <li><strong>Optimize</strong> — Automatic SEO scoring and recommendations</li>
+    </ol>
+
+    <div style="margin-top: 24px;">
+        <a href="/scrape" class="btn">Start Scraping</a>
+        <a href="/generate" class="btn btn-secondary" style="margin-left: 8px;">Generate Content</a>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Capabilities</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 16px;">
+        <div>
+            <h4 style="margin-bottom: 6px;">Web Scraping</h4>
+            <p style="font-size: 13px; color: #666;">Download and organize content from any website. Supports subdirectory filtering.</p>
+        </div>
+        <div>
+            <h4 style="margin-bottom: 6px;">Content Generation</h4>
+            <p style="font-size: 13px; color: #666;">AI-powered article creation based on scraped content patterns.</p>
+        </div>
+        <div>
+            <h4 style="margin-bottom: 6px;">SEO Analysis</h4>
+            <p style="font-size: 13px; color: #666;">Keyword density, readability scoring, and optimization suggestions.</p>
+        </div>
+        <div>
+            <h4 style="margin-bottom: 6px;">Batch Processing</h4>
+            <p style="font-size: 13px; color: #666;">Generate content series on related topics automatically.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

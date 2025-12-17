@@ -1,0 +1,80 @@
+{% extends "utm/base.html" %}
+
+{% block content %}
+<div class="stats">
+    <div class="stat-card">
+        <h3>{{ stats.total_links }}</h3>
+        <p>Total Links</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.unique_campaigns }}</h3>
+        <p>Campaigns</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.unique_channels }}</h3>
+        <p>Channels</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>UTM Builder + Link Library</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Generate compliant tracking links and maintain a searchable, governed link library.
+    </p>
+
+    <h3>Workflow</h3>
+    <ol style="margin-left: 20px; color: #444; font-size: 13px;">
+        <li style="margin-bottom: 8px;"><strong>Configure Policy</strong> — Define allowed UTM values and naming conventions</li>
+        <li style="margin-bottom: 8px;"><strong>Set Up Channels</strong> — Map channels to default source/medium pairs</li>
+        <li style="margin-bottom: 8px;"><strong>Generate Links</strong> — Create validated, compliant tracking URLs</li>
+        <li style="margin-bottom: 8px;"><strong>Use Library</strong> — Search, copy, and track link usage</li>
+    </ol>
+
+    <div style="margin-top: 24px;">
+        <a href="/utm/generate" class="btn">Generate Link</a>
+        <a href="/utm/library" class="btn btn-secondary" style="margin-left: 8px;">View Library</a>
+    </div>
+</div>
+
+{% if recent_links %}
+<div class="card">
+    <h2>Recent Links</h2>
+    <div class="table-wrapper" style="margin-top: 16px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Campaign</th>
+                    <th>Channel</th>
+                    <th>URL</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for link in recent_links %}
+                <tr>
+                    <td><a href="/utm/link/{{ link.id }}">{{ link.utm_campaign }}</a></td>
+                    <td>{{ link.channel or '—' }}</td>
+                    <td class="truncate mono text-sm">{{ link.canonical_url }}</td>
+                    <td class="text-muted text-sm">{{ link.created_at.strftime('%b %d') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div style="margin-top: 16px;">
+        <a href="/utm/library">View all links →</a>
+    </div>
+</div>
+{% endif %}
+
+{% if not channels %}
+<div class="card">
+    <h2>Getting Started</h2>
+    <p style="color: #666; margin-bottom: 16px;">
+        Set up your channel defaults to streamline link generation.
+    </p>
+    <a href="/utm/channels" class="btn btn-secondary">Configure Channels</a>
+</div>
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,263 @@
+{% extends "utm/base.html" %}
+
+{% block extra_css %}
+<style>
+    .generated-result {
+        display: none;
+        margin-top: 24px;
+        padding: 20px;
+        background: #f6f9f6;
+        border: 1px solid #c8dcc8;
+        border-radius: 4px;
+    }
+
+    .generated-result.show {
+        display: block;
+    }
+
+    .generated-url {
+        font-family: 'SF Mono', Monaco, monospace;
+        font-size: 12px;
+        background: #fff;
+        padding: 12px;
+        border: 1px solid #e5e5e5;
+        border-radius: 4px;
+        word-break: break-all;
+        margin: 12px 0;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    @media (max-width: 600px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .helper-text {
+        font-size: 11px;
+        color: #888;
+        margin-top: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Generate Tracked Link</h2>
+    <p>Create a UTM-tagged URL that will be saved to your link library.</p>
+
+    <form id="generateForm" style="margin-top: 20px;">
+        <div class="form-group">
+            <label for="canonical_url">Destination URL *</label>
+            <input type="url" id="canonical_url" name="canonical_url" placeholder="https://example.com/page" required>
+            <p class="helper-text">The page you want to track visits to</p>
+        </div>
+
+        {% if channels %}
+        <div class="form-group">
+            <label for="channel">Channel</label>
+            <select id="channel" name="channel" onchange="fillChannelDefaults()">
+                <option value="">— Select channel (optional) —</option>
+                {% for ch in channels %}
+                <option value="{{ ch.id }}" data-source="{{ ch.default_source }}" data-medium="{{ ch.default_medium }}">{{ ch.channel_name }}</option>
+                {% endfor %}
+            </select>
+            <p class="helper-text">Auto-fills source and medium from your channel defaults</p>
+        </div>
+        {% endif %}
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="utm_source">Source *</label>
+                {% if sources %}
+                <select id="utm_source" name="utm_source" required>
+                    <option value="">— Select source —</option>
+                    {% for s in sources %}
+                    <option value="{{ s }}">{{ s }}</option>
+                    {% endfor %}
+                </select>
+                {% else %}
+                <input type="text" id="utm_source" name="utm_source" placeholder="e.g., linkedin, newsletter" required>
+                {% endif %}
+                <p class="helper-text">Where the traffic comes from</p>
+            </div>
+
+            <div class="form-group">
+                <label for="utm_medium">Medium *</label>
+                {% if mediums %}
+                <select id="utm_medium" name="utm_medium" required>
+                    <option value="">— Select medium —</option>
+                    {% for m in mediums %}
+                    <option value="{{ m }}">{{ m }}</option>
+                    {% endfor %}
+                </select>
+                {% else %}
+                <input type="text" id="utm_medium" name="utm_medium" placeholder="e.g., social, email, cpc" required>
+                {% endif %}
+                <p class="helper-text">Marketing medium (social, email, etc.)</p>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="utm_campaign">Campaign *</label>
+            {% if campaigns %}
+            <select id="utm_campaign" name="utm_campaign" required>
+                <option value="">— Select campaign —</option>
+                {% for c in campaigns %}
+                <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+                <option value="__custom__">+ Enter custom campaign</option>
+            </select>
+            <input type="text" id="utm_campaign_custom" name="utm_campaign_custom" placeholder="Enter custom campaign name" style="display: none; margin-top: 8px;">
+            {% else %}
+            <input type="text" id="utm_campaign" name="utm_campaign" placeholder="e.g., spring-launch, q1-promo" required>
+            {% endif %}
+            <p class="helper-text">Campaign name or identifier</p>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="utm_content">Content {{ '(required)' if policy and policy.require_content else '(optional)' }}</label>
+                <input type="text" id="utm_content" name="utm_content" placeholder="e.g., hero-cta, sidebar-ad" {{ 'required' if policy and policy.require_content else '' }}>
+                <p class="helper-text">Differentiate ads or links pointing to the same URL</p>
+            </div>
+
+            <div class="form-group">
+                <label for="utm_term">Term {{ '(required)' if policy and policy.require_term else '(optional)' }}</label>
+                <input type="text" id="utm_term" name="utm_term" placeholder="e.g., running+shoes" {{ 'required' if policy and policy.require_term else '' }}>
+                <p class="helper-text">Paid search keywords</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+            <label for="asset_name">Asset Name (optional)</label>
+            <input type="text" id="asset_name" name="asset_name" placeholder="e.g., Product Launch Blog Post">
+            <p class="helper-text">Human-readable name for the linked asset</p>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Notes (optional)</label>
+            <textarea id="description" name="description" rows="2" placeholder="Any additional context about this link..."></textarea>
+        </div>
+
+        <button type="submit">Generate & Save Link</button>
+    </form>
+
+    <div id="generatedResult" class="generated-result">
+        <h3 style="margin-top: 0; color: #166534;">Link Generated Successfully</h3>
+        <p class="text-sm text-muted">Your link has been saved to the library.</p>
+        <div id="generatedUrl" class="generated-url"></div>
+        <button type="button" class="copy-btn" onclick="copyToClipboard()">Copy URL</button>
+        <a href="/utm/library" class="btn btn-secondary btn-sm" style="margin-left: 8px;">View in Library</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function fillChannelDefaults() {
+    const select = document.getElementById('channel');
+    const option = select.options[select.selectedIndex];
+    
+    if (option.value) {
+        const source = option.dataset.source;
+        const medium = option.dataset.medium;
+        
+        // Fill source
+        const sourceEl = document.getElementById('utm_source');
+        if (sourceEl.tagName === 'SELECT') {
+            for (let i = 0; i < sourceEl.options.length; i++) {
+                if (sourceEl.options[i].value === source) {
+                    sourceEl.selectedIndex = i;
+                    break;
+                }
+            }
+        } else {
+            sourceEl.value = source;
+        }
+        
+        // Fill medium
+        const mediumEl = document.getElementById('utm_medium');
+        if (mediumEl.tagName === 'SELECT') {
+            for (let i = 0; i < mediumEl.options.length; i++) {
+                if (mediumEl.options[i].value === medium) {
+                    mediumEl.selectedIndex = i;
+                    break;
+                }
+            }
+        } else {
+            mediumEl.value = medium;
+        }
+    }
+}
+
+// Handle custom campaign input
+{% if campaigns %}
+document.getElementById('utm_campaign').addEventListener('change', function() {
+    const customInput = document.getElementById('utm_campaign_custom');
+    if (this.value === '__custom__') {
+        customInput.style.display = 'block';
+        customInput.required = true;
+    } else {
+        customInput.style.display = 'none';
+        customInput.required = false;
+    }
+});
+{% endif %}
+
+document.getElementById('generateForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    // Handle custom campaign
+    {% if campaigns %}
+    if (formData.get('utm_campaign') === '__custom__') {
+        formData.set('utm_campaign', formData.get('utm_campaign_custom'));
+    }
+    {% endif %}
+    
+    // Get channel name instead of ID
+    const channelSelect = document.getElementById('channel');
+    if (channelSelect && channelSelect.value) {
+        formData.set('channel', channelSelect.options[channelSelect.selectedIndex].text);
+    }
+    
+    try {
+        const response = await fetch('/utm/generate', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            document.getElementById('generatedUrl').textContent = result.full_url;
+            document.getElementById('generatedResult').classList.add('show');
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        } else {
+            alert(result.error || 'Failed to generate link');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+});
+
+function copyToClipboard() {
+    const url = document.getElementById('generatedUrl').textContent;
+    navigator.clipboard.writeText(url).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy URL', 2000);
+    });
+}
+</script>
+{% endblock %}
+

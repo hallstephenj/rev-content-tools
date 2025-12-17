@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Reverent Content Co.</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #fafafa;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        header {
+            background: #fff;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 16px 0;
+        }
+
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .site-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a1a;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .site-title > span {
+            color: #888;
+            font-weight: 400;
+        }
+
+        .tool-picker-menu span {
+            color: inherit !important;
+        }
+
+        /* Tool Picker */
+        .tool-picker {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tool-picker-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .tool-picker-btn:hover {
+            background: #2d2d2d;
+        }
+
+        .tool-picker-btn .chevron {
+            font-size: 8px;
+            opacity: 0.5;
+            margin-left: 2px;
+        }
+
+        .tool-picker-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            background: #1a1a1a;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            min-width: 160px;
+            z-index: 1000;
+            overflow: hidden;
+            padding: 4px 0;
+        }
+
+        .tool-picker-menu.open {
+            display: block;
+        }
+
+        .tool-picker-label {
+            padding: 6px 10px 4px;
+            font-size: 9px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        a.tool-picker-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            color: #fff !important;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.1s ease;
+            text-decoration: none;
+        }
+
+        a.tool-picker-item:hover {
+            background: #2a2a2a;
+            color: #fff !important;
+        }
+
+        a.tool-picker-item.active {
+            background: #2a2a2a;
+            color: #fff !important;
+        }
+
+        .tool-picker-item .check {
+            font-size: 10px;
+            color: #3b82f6;
+            opacity: 0;
+        }
+
+        .tool-picker-item.active .check {
+            opacity: 1;
+        }
+
+        .tool-picker-divider {
+            height: 1px;
+            background: #333;
+            margin: 4px 0;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 64px 24px;
+        }
+
+        .coming-soon {
+            text-align: center;
+        }
+
+        .coming-soon h1 {
+            font-size: 18px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 6px;
+            letter-spacing: -0.01em;
+        }
+
+        .coming-soon p {
+            font-size: 13px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="site-title">
+                <div class="tool-picker">
+                    <button class="tool-picker-btn" onclick="toggleToolPicker(event)">
+                        <span>{{ tool_name }}</span>
+                        <span class="chevron">▼</span>
+                    </button>
+                    <div class="tool-picker-menu" id="toolPickerMenu">
+                        <div class="tool-picker-label">Tools</div>
+                        <a href="/" class="tool-picker-item {% if tool_id == 'seo' %}active{% endif %}">
+                            <span>SEO Tool</span>
+                            <span class="check">✓</span>
+                        </a>
+                        <a href="/utm" class="tool-picker-item {% if tool_id == 'utm' %}active{% endif %}">
+                            <span>UTM Tool</span>
+                            <span class="check">✓</span>
+                        </a>
+                        <a href="/campaign" class="tool-picker-item {% if tool_id == 'campaign' %}active{% endif %}">
+                            <span>Campaign Tool</span>
+                            <span class="check">✓</span>
+                        </a>
+                        <div class="tool-picker-divider"></div>
+                        <div class="tool-picker-label">Account</div>
+                        <a href="/settings" class="tool-picker-item {% if tool_id == 'settings' %}active{% endif %}">
+                            <span>Settings</span>
+                            <span class="check">✓</span>
+                        </a>
+                    </div>
+                </div>
+                <span>/ Reverent Content Co.</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="coming-soon">
+            <h1>{{ title }}</h1>
+            <p>Coming soon</p>
+        </div>
+    </main>
+
+    <script>
+    function toggleToolPicker(e) {
+        e.stopPropagation();
+        const menu = document.getElementById('toolPickerMenu');
+        menu.classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('toolPickerMenu');
+        if (!e.target.closest('.tool-picker')) {
+            menu.classList.remove('open');
+        }
+    });
+    </script>
+</body>
+</html>

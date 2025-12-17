@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .setting-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .key-status {
+        font-size: 12px;
+        color: #888;
+    }
+
+    .key-status strong {
+        color: #1a1a1a;
+        font-weight: 500;
+    }
+
+    .inline-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .checkbox-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #666;
+        cursor: pointer;
+    }
+
+    .checkbox-inline input {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .note {
+        font-size: 12px;
+        color: #888;
+    }
+
+    .pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border: 1px solid #e5e5e5;
+        border-radius: 999px;
+        font-size: 11px;
+        color: #666;
+        background: #fafafa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if saved %}
+<div class="alert alert-success" style="margin-bottom: 16px;">
+    Settings saved.
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>Settings</h2>
+    <p>Account preferences and configuration for content generation.</p>
+
+    <div class="account-card" style="margin-top: 16px;">
+        <div class="account-avatar">
+            {{ current_user.username[0]|upper }}
+        </div>
+        <div class="account-info">
+            <h3 style="margin: 0 0 4px 0;">{{ current_user.username }}</h3>
+            <p class="account-email">{{ current_user.email }}</p>
+            <p class="account-meta">Member since {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+            <div class="inline-controls" style="margin-top: 12px;">
+                <a class="btn btn-secondary" href="/logout">Sign out</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Generation Settings</h2>
+    <p>Used by Generate, Topic Clusters, and Analyze.</p>
+
+    <div class="setting-row">
+        <div>
+            <h3 style="margin-top: 0;">OpenAI API Key</h3>
+            <p class="note">
+                Stored locally per account in <span class="mono">seo_content.db</span>. Used by Generate.
+            </p>
+
+            {% if openai_key_masked %}
+            <p class="key-status" style="margin-top: 10px;">
+                Current key: <strong class="mono">{{ openai_key_masked }}</strong>
+                {% if openai_key_source %}
+                <span class="pill">{{ openai_key_source }}</span>
+                {% endif %}
+            </p>
+            {% else %}
+            <p class="key-status" style="margin-top: 10px;">No key configured.</p>
+            {% endif %}
+        </div>
+
+        <form method="POST" action="/settings">
+            <div class="form-group">
+                <label for="openai_api_key">Set / update key</label>
+                <input
+                    type="password"
+                    id="openai_api_key"
+                    name="openai_api_key"
+                    placeholder="sk-..."
+                    autocomplete="off"
+                />
+                <p class="note" style="margin-top: 6px;">
+                    Leave blank to keep existing. To remove the saved DB key, use the checkbox below.
+                </p>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-inline">
+                    <input type="checkbox" name="clear_openai_api_key" />
+                    Clear saved key (database)
+                </label>
+                {% if not has_db_key %}
+                <p class="note" style="margin-top: 6px;">No DB key is currently saved.</p>
+                {% endif %}
+            </div>
+
+            <hr style="margin: 24px 0;">
+
+            <div>
+                <h3 style="margin-top: 0;">Brand Voice & Style</h3>
+                <p class="note">
+                    Persistent instructions included in all content generation prompts. Use this to define your brand's tone, style guidelines, and writing conventions.
+                </p>
+            </div>
+
+            <div class="form-group" style="margin-top: 12px;">
+                <label for="brand_voice">Voice & style instructions</label>
+                <textarea
+                    id="brand_voice"
+                    name="brand_voice"
+                    rows="6"
+                    placeholder="e.g. Write in a professional but approachable tone. Avoid jargon. Use short paragraphs. Address the reader as 'you'. Our brand values clarity, honesty, and expertise."
+                >{{ brand_voice or '' }}</textarea>
+                <p class="note" style="margin-top: 6px;">
+                    These instructions are automatically prepended to every Generate request.
+                </p>
+            </div>
+
+            <div class="inline-controls">
+                <button type="submit">Save Settings</button>
+                <a class="btn btn-secondary" href="/generate">Go to Generate</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .account-card {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .account-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: #1a1a1a;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+
+    .account-email {
+        color: #666;
+        margin: 0 0 4px 0;
+    }
+
+    .account-meta {
+        color: #999;
+        font-size: 13px;
+        margin: 0;
+    }
+</style>
+{% endblock %}

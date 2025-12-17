@@ -1,0 +1,130 @@
+{% extends "utm/base.html" %}
+
+{% block extra_css %}
+<style>
+    .search-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .search-bar input[type="text"] {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .search-bar select {
+        width: 150px;
+    }
+
+    .link-url {
+        font-family: 'SF Mono', Monaco, monospace;
+        font-size: 11px;
+        color: #666;
+        max-width: 250px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .link-actions {
+        display: flex;
+        gap: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+            <h2 style="margin-bottom: 4px;">Link Library</h2>
+            <p class="text-muted text-sm">{{ stats.total_links }} total links</p>
+        </div>
+        <div>
+            <a href="/utm/export" class="btn btn-secondary btn-sm">Export CSV</a>
+            <a href="/utm/generate" class="btn btn-sm" style="margin-left: 8px;">+ New Link</a>
+        </div>
+    </div>
+
+    <form method="GET" class="search-bar">
+        <input type="text" name="q" placeholder="Search links..." value="{{ query }}">
+        <select name="channel">
+            <option value="">All Channels</option>
+            {% for ch in channels %}
+            <option value="{{ ch.channel_name }}" {{ 'selected' if selected_channel == ch.channel_name else '' }}>{{ ch.channel_name }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="campaign" placeholder="Campaign..." value="{{ selected_campaign }}" style="width: 150px;">
+        <button type="submit" class="btn btn-secondary">Search</button>
+        {% if query or selected_channel or selected_campaign %}
+        <a href="/utm/library" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+
+    {% if links %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Campaign</th>
+                    <th>Source / Medium</th>
+                    <th>Channel</th>
+                    <th>URL</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for link in links %}
+                <tr>
+                    <td>
+                        <a href="/utm/link/{{ link.id }}"><strong>{{ link.utm_campaign }}</strong></a>
+                        {% if link.utm_content %}
+                        <br><span class="text-muted text-sm">{{ link.utm_content }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="pill">{{ link.utm_source }}</span>
+                        <span class="pill">{{ link.utm_medium }}</span>
+                    </td>
+                    <td>{{ link.channel or '—' }}</td>
+                    <td>
+                        <div class="link-url" title="{{ link.canonical_url }}">{{ link.canonical_url }}</div>
+                    </td>
+                    <td class="text-muted text-sm">{{ link.created_at.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        <div class="link-actions">
+                            <button type="button" class="copy-btn" onclick="copyUrl('{{ link.full_url }}', this)">Copy</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No links found</h3>
+        <p>{% if query or selected_channel or selected_campaign %}Try adjusting your search filters{% else %}Create your first tracked link to get started{% endif %}</p>
+        {% if not query and not selected_channel and not selected_campaign %}
+        <a href="/utm/generate" class="btn" style="margin-top: 16px;">Generate Link</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyUrl(url, btn) {
+    navigator.clipboard.writeText(url).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = originalText, 1500);
+    });
+}
+</script>
+{% endblock %}
+

@@ -1,0 +1,137 @@
+{% extends "utm/base.html" %}
+
+{% block extra_css %}
+<style>
+    .channel-form {
+        background: #fafafa;
+        border: 1px solid #e5e5e5;
+        border-radius: 4px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    .channel-form h3 {
+        margin-top: 0;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+        align-items: end;
+    }
+
+    @media (max-width: 600px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .delete-btn {
+        color: #dc2626;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+
+    .delete-btn:hover {
+        background: #fef2f2;
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Channel Defaults</h2>
+    <p>Map channels to default source/medium pairs. When generating links, selecting a channel auto-fills these values.</p>
+
+    {% if channels %}
+    <div class="table-wrapper" style="margin-top: 20px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Channel Name</th>
+                    <th>Default Source</th>
+                    <th>Default Medium</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ch in channels %}
+                <tr>
+                    <td><strong>{{ ch.channel_name }}</strong></td>
+                    <td><span class="pill">{{ ch.default_source }}</span></td>
+                    <td><span class="pill">{{ ch.default_medium }}</span></td>
+                    <td>
+                        <form method="POST" style="display: inline;" onsubmit="return confirm('Delete this channel?');">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="channel_id" value="{{ ch.id }}">
+                            <button type="submit" class="delete-btn">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding: 32px;">
+        <p>No channels configured yet. Add your first channel below.</p>
+    </div>
+    {% endif %}
+
+    <div class="channel-form">
+        <h3>Add Channel</h3>
+        <form method="POST">
+            <input type="hidden" name="action" value="add">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="channel_name">Channel Name</label>
+                    <input type="text" id="channel_name" name="channel_name" placeholder="e.g., LinkedIn" required>
+                </div>
+                <div class="form-group">
+                    <label for="default_source">Default Source</label>
+                    <input type="text" id="default_source" name="default_source" placeholder="e.g., linkedin" required>
+                </div>
+                <div class="form-group">
+                    <label for="default_medium">Default Medium</label>
+                    <input type="text" id="default_medium" name="default_medium" placeholder="e.g., social" required>
+                </div>
+            </div>
+            <button type="submit" style="margin-top: 12px;">Add Channel</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Common Channel Configurations</h2>
+    <p class="text-muted text-sm" style="margin-bottom: 16px;">Reference for typical channel setups:</p>
+    
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Channel</th>
+                    <th>Source</th>
+                    <th>Medium</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>LinkedIn</td><td>linkedin</td><td>social</td></tr>
+                <tr><td>Twitter/X</td><td>twitter</td><td>social</td></tr>
+                <tr><td>Facebook</td><td>facebook</td><td>social</td></tr>
+                <tr><td>Instagram</td><td>instagram</td><td>social</td></tr>
+                <tr><td>Newsletter</td><td>newsletter</td><td>email</td></tr>
+                <tr><td>Email Outreach</td><td>outreach</td><td>email</td></tr>
+                <tr><td>Google Ads</td><td>google</td><td>cpc</td></tr>
+                <tr><td>LinkedIn Ads</td><td>linkedin</td><td>cpc</td></tr>
+                <tr><td>Partner Referral</td><td>partner</td><td>referral</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

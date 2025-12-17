@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .cluster-content {
+        font-size: 13px;
+        line-height: 1.8;
+        color: #333;
+    }
+
+    .cluster-content h1 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 28px 0 12px 0;
+        border-bottom: 1px solid #e5e5e5;
+        padding-bottom: 8px;
+    }
+
+    .cluster-content h2 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 24px 0 10px 0;
+        border-bottom: 1px solid #e5e5e5;
+        padding-bottom: 6px;
+    }
+
+    .cluster-content h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 20px 0 8px 0;
+    }
+
+    .cluster-content h4 {
+        font-size: 13px;
+        font-weight: 500;
+        color: #333;
+        margin: 16px 0 6px 0;
+    }
+
+    .cluster-content p {
+        margin: 10px 0;
+    }
+
+    .cluster-content ul, .cluster-content ol {
+        margin: 10px 0 10px 24px;
+        padding: 0;
+    }
+
+    .cluster-content li {
+        margin: 6px 0;
+    }
+
+    .cluster-content strong {
+        color: #1a1a1a;
+    }
+
+    .cluster-content em {
+        color: #555;
+    }
+
+    .cluster-meta {
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .cluster-meta span {
+        margin-right: 16px;
+    }
+
+    .copy-btn {
+        background: #f5f5f5;
+        color: #666;
+        border: 1px solid #ddd;
+        padding: 8px 14px;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background 0.1s ease;
+    }
+
+    .copy-btn:hover {
+        background: #eee;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>{{ cluster.title }}</h2>
+    
+    <p class="cluster-meta">
+        {% if cluster.subdirectory %}
+        <span>Subdirectory: {{ cluster.subdirectory }}</span>
+        {% endif %}
+        <span>{{ cluster.num_samples or 0 }} pages analyzed</span>
+        {% if cluster.generated_at %}
+        <span>Generated: {{ cluster.generated_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        {% endif %}
+    </p>
+
+    <div style="margin-bottom: 16px;">
+        <button class="copy-btn" onclick="copyClusterContent()">Copy Markdown</button>
+        <a href="/generated-content" class="btn btn-secondary" style="margin-left: 8px;">Back to Generated Content</a>
+    </div>
+
+    <div class="cluster-content" id="clusterContent">
+        {{ cluster.content | safe }}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Convert markdown to HTML for display
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('clusterContent');
+    const rawMarkdown = container.textContent;
+    
+    // Store raw markdown for copy function
+    container.dataset.raw = rawMarkdown;
+    
+    // Basic markdown to HTML conversion
+    let html = rawMarkdown
+        // Headers
+        .replace(/^#### (.*$)/gm, '<h4>$1</h4>')
+        .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+        // Bold
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        // Italic
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        // Unordered lists
+        .replace(/^\s*[-*]\s+(.*)$/gm, '<li>$1</li>')
+        // Numbered lists
+        .replace(/^\s*\d+\.\s+(.*)$/gm, '<li>$1</li>')
+        // Line breaks
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
+    
+    // Wrap consecutive <li> in <ul>
+    html = html.replace(/(<li>.*?<\/li>)+/gs, function(match) {
+        return '<ul>' + match + '</ul>';
+    });
+    
+    container.innerHTML = '<p>' + html + '</p>';
+});
+
+function copyClusterContent() {
+    const container = document.getElementById('clusterContent');
+    const rawMarkdown = container.dataset.raw;
+    
+    navigator.clipboard.writeText(rawMarkdown).then(function() {
+        const btn = document.querySelector('.copy-btn');
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = originalText; }, 2000);
+    });
+}
+</script>
+{% endblock %}
+
+

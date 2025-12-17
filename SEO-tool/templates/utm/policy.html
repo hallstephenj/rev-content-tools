@@ -1,0 +1,117 @@
+{% extends "utm/base.html" %}
+
+{% block extra_css %}
+<style>
+    .policy-section {
+        margin-top: 24px;
+    }
+
+    .policy-section h3 {
+        margin-top: 0;
+    }
+
+    textarea.values-input {
+        min-height: 100px;
+        font-family: 'SF Mono', Monaco, monospace;
+        font-size: 12px;
+    }
+
+    .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .checkbox-row label {
+        margin-bottom: 0;
+        font-weight: 400;
+    }
+
+    .helper-text {
+        font-size: 11px;
+        color: #888;
+        margin-top: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>UTM Policy Configuration</h2>
+    <p>Define your UTM taxonomy rules to ensure consistent, compliant tracking links.</p>
+
+    {% if saved %}
+    <div class="alert alert-success" style="margin-top: 16px;">
+        Policy settings saved.
+    </div>
+    {% endif %}
+
+    <form method="POST" style="margin-top: 20px;">
+        <div class="policy-section">
+            <h3>Naming Convention</h3>
+            <div class="form-group">
+                <label for="naming_convention">Format for UTM values</label>
+                <select id="naming_convention" name="naming_convention">
+                    <option value="lowercase-hyphens" {{ 'selected' if not policy or policy.naming_convention == 'lowercase-hyphens' else '' }}>lowercase-with-hyphens</option>
+                    <option value="lowercase-underscores" {{ 'selected' if policy and policy.naming_convention == 'lowercase-underscores' else '' }}>lowercase_with_underscores</option>
+                    <option value="lowercase" {{ 'selected' if policy and policy.naming_convention == 'lowercase' else '' }}>lowercasenospaces</option>
+                    <option value="none" {{ 'selected' if policy and policy.naming_convention == 'none' else '' }}>No transformation</option>
+                </select>
+                <p class="helper-text">Values will be automatically transformed when generating links</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="policy-section">
+            <h3>Allowed Values</h3>
+            <p class="text-muted text-sm" style="margin-bottom: 16px;">
+                Define dropdown options for each UTM parameter. Leave blank to allow free-form input.
+            </p>
+
+            <div class="form-group">
+                <label for="allowed_sources">Allowed Sources</label>
+                <textarea id="allowed_sources" name="allowed_sources" class="values-input" placeholder="linkedin&#10;google&#10;newsletter&#10;facebook&#10;twitter">{{ sources }}</textarea>
+                <p class="helper-text">One value per line. These will appear in a dropdown when generating links.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="allowed_mediums">Allowed Mediums</label>
+                <textarea id="allowed_mediums" name="allowed_mediums" class="values-input" placeholder="social&#10;email&#10;cpc&#10;organic&#10;referral">{{ mediums }}</textarea>
+                <p class="helper-text">One value per line</p>
+            </div>
+
+            <div class="form-group">
+                <label for="allowed_campaigns">Allowed Campaigns</label>
+                <textarea id="allowed_campaigns" name="allowed_campaigns" class="values-input" placeholder="spring-launch-2024&#10;q1-newsletter&#10;product-announcement">{{ campaigns }}</textarea>
+                <p class="helper-text">One value per line. Users can also enter custom campaigns.</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="policy-section">
+            <h3>Required Fields</h3>
+            <p class="text-muted text-sm" style="margin-bottom: 16px;">
+                Source, Medium, and Campaign are always required. Optionally require Content and Term.
+            </p>
+
+            <div class="checkbox-row">
+                <input type="checkbox" id="require_content" name="require_content" {{ 'checked' if policy and policy.require_content else '' }}>
+                <label for="require_content">Require utm_content</label>
+            </div>
+
+            <div class="checkbox-row">
+                <input type="checkbox" id="require_term" name="require_term" {{ 'checked' if policy and policy.require_term else '' }}>
+                <label for="require_term">Require utm_term</label>
+            </div>
+        </div>
+
+        <hr>
+
+        <button type="submit">Save Policy</button>
+    </form>
+</div>
+{% endblock %}
+

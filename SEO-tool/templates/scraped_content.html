@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    /* Expandable items - restrained */
+    .expandable-item {
+        background: #fff;
+        margin-bottom: 8px;
+        border: 1px solid #e5e5e5;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .item-header {
+        padding: 14px 16px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        transition: background 0.1s ease;
+    }
+
+    .item-header:hover {
+        background: #fafafa;
+    }
+
+    .item-header h4 {
+        color: #1a1a1a;
+        font-size: 13px;
+        font-weight: 500;
+        margin: 0 0 2px 0;
+        flex: 1;
+    }
+
+    .item-meta {
+        color: #888;
+        font-size: 12px;
+        margin: 0;
+    }
+
+    .expand-icon {
+        font-size: 10px;
+        color: #888;
+        transition: transform 0.15s ease;
+        flex-shrink: 0;
+    }
+
+    .expandable-item.expanded .expand-icon {
+        transform: rotate(180deg);
+    }
+
+    .item-details {
+        display: none;
+        padding: 0 16px 16px 16px;
+        border-top: 1px solid #eee;
+        background: #fafafa;
+    }
+
+    .expandable-item.expanded .item-details {
+        display: block;
+    }
+
+    .detail-section {
+        margin-top: 16px;
+    }
+
+    .detail-section h5 {
+        color: #888;
+        font-size: 11px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .detail-section p,
+    .detail-section pre {
+        color: #444;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .raw-content {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 3px;
+        padding: 12px;
+        max-height: 320px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+        font-size: 12px;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    .detail-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 4px;
+        font-size: 13px;
+    }
+
+    .detail-row strong {
+        color: #888;
+        min-width: 100px;
+        font-weight: 500;
+    }
+
+    .detail-row span {
+        color: #1a1a1a;
+    }
+
+    .detail-row a {
+        color: #666;
+        word-break: break-all;
+        text-decoration: underline;
+        text-decoration-color: #ccc;
+    }
+
+    .detail-row a:hover {
+        color: #1a1a1a;
+    }
+
+    .keywords-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+    }
+
+    .keyword-tag {
+        background: #f0f0f0;
+        color: #555;
+        padding: 3px 10px;
+        border-radius: 3px;
+        font-size: 12px;
+    }
+
+    .copy-btn {
+        background: #f5f5f5;
+        color: #666;
+        border: 1px solid #ddd;
+        padding: 6px 12px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-family: inherit;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: background 0.1s ease;
+    }
+
+    .copy-btn:hover {
+        background: #eee;
+    }
+
+    /* Filter tabs - minimal */
+    .filter-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 20px 0 16px 0;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .filter-tab {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        background: #fff !important;
+        color: #666 !important;
+        font-size: 12px;
+        font-weight: 450;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.1s ease;
+    }
+
+    .filter-tab:hover {
+        background: #f5f5f5 !important;
+        border-color: #ccc;
+        color: #1a1a1a !important;
+    }
+
+    .filter-tab.active {
+        background: #1a1a1a !important;
+        border-color: #1a1a1a;
+        color: #fff !important;
+    }
+
+    .filter-tab.active:hover {
+        background: #333 !important;
+        color: #fff !important;
+    }
+
+    .filter-tab .count {
+        opacity: 0.6;
+        font-size: 11px;
+        margin-left: 4px;
+    }
+
+    .filter-tab.active .count {
+        opacity: 0.7;
+    }
+
+    .filter-info {
+        color: #888;
+        font-size: 12px;
+        margin-bottom: 16px;
+    }
+
+    .expandable-item.hidden {
+        display: none;
+    }
+
+    /* Minor subdirs toggle */
+    .minor-subdirs-container {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .minor-subdirs {
+        display: none;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .minor-subdirs.visible {
+        display: flex;
+    }
+
+    .toggle-minor-btn {
+        padding: 6px 12px;
+        border: 1px dashed #ccc;
+        border-radius: 3px;
+        background: transparent !important;
+        color: #888 !important;
+        font-size: 12px;
+        font-weight: 450;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.1s ease;
+    }
+
+    .toggle-minor-btn:hover {
+        background: #f9f9f9 !important;
+        border-color: #aaa;
+        color: #666 !important;
+    }
+
+    .toggle-minor-btn.active {
+        border-style: solid;
+        border-color: #888;
+        color: #666 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Scraped Content</h2>
+    <p>Total pages: <strong>{{ content|length }}</strong></p>
+    <p style="color: #666; font-size: 0.9rem; margin-top: 0.25rem;">Click on any item to expand and view full details</p>
+
+    {% if content %}
+        {% if major_subdirs or minor_subdirs %}
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all" onclick="filterBySubdir('all', this)">
+                All <span class="count">{{ content|length }}</span>
+            </button>
+            {% for subdir in major_subdirs %}
+            <button class="filter-tab" data-filter="{{ subdir }}" onclick="filterBySubdir('{{ subdir }}', this)">
+                {{ subdir }} <span class="count">{{ subdir_counts[subdir] }}</span>
+            </button>
+            {% endfor %}
+            {% if minor_subdirs %}
+            <div class="minor-subdirs-container">
+                <button class="toggle-minor-btn" onclick="toggleMinorSubdirs(this)">
+                    Show {{ minor_subdirs|length }} minor subdirectories
+                </button>
+                <div class="minor-subdirs" id="minor-subdirs">
+                    {% for subdir in minor_subdirs %}
+                    <button class="filter-tab" data-filter="{{ subdir }}" onclick="filterBySubdir('{{ subdir }}', this)">
+                        {{ subdir }} <span class="count">{{ subdir_counts[subdir] }}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <p class="filter-info" id="filter-info">Showing all <strong>{{ content|length }}</strong> pages</p>
+        {% endif %}
+
+        <div id="content-list">
+        {% for item in content %}
+            {# Extract first subdirectory from URL for filtering #}
+            {% set url_path = item.url.split('://')[1].split('/', 1)[1] if '://' in item.url else item.url %}
+            {% set first_subdir = '/' + url_path.split('/')[0] + '/' if url_path and url_path.split('/')[0] else '/' %}
+            <div class="expandable-item" id="item-{{ loop.index }}" data-subdir="{{ first_subdir }}">
+                <div class="item-header" onclick="toggleItem('item-{{ loop.index }}')">
+                    <div>
+                        <h4>{{ item.title or 'No Title' }}</h4>
+                        <p class="item-meta">
+                            {{ item.word_count or 0 }} words
+                            {% if item.scraped_at %}
+                             · {{ item.scraped_at.strftime('%Y-%m-%d %H:%M') }}
+                            {% endif %}
+                            {% if item.domain %}
+                             · {{ item.domain }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="item-details">
+                    <div class="detail-section">
+                        <h5>Page Information</h5>
+                        <div class="detail-row">
+                            <strong>URL:</strong>
+                            <a href="{{ item.url }}" target="_blank">{{ item.url }}</a>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Title:</strong>
+                            <span>{{ item.title or 'N/A' }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Word Count:</strong>
+                            <span>{{ item.word_count or 0 }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Scraped At:</strong>
+                            <span>{{ item.scraped_at.strftime('%Y-%m-%d %H:%M:%S') if item.scraped_at else 'N/A' }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Domain:</strong>
+                            <span>{{ item.domain or 'N/A' }}</span>
+                        </div>
+                    </div>
+
+                    {% if item.meta_description %}
+                    <div class="detail-section">
+                        <h5>Meta Description</h5>
+                        <p>{{ item.meta_description }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if item.keywords %}
+                    <div class="detail-section">
+                        <h5>Keywords</h5>
+                        <div class="keywords-list">
+                            {% for kw in item.keywords.split(',') %}
+                                {% if kw.strip() %}
+                                <span class="keyword-tag">{{ kw.strip() }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="detail-section">
+                        <h5>Raw Content</h5>
+                        <pre class="raw-content" id="content-{{ loop.index }}">{{ item.content }}</pre>
+                        <button class="copy-btn" onclick="copyContent('content-{{ loop.index }}')">
+                            📋 Copy Content
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert" style="background: #fff3cd; color: #856404; margin-top: 2rem;">
+            No scraped content yet. <a href="/scrape">Start scraping a website</a>.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleItem(itemId) {
+    const item = document.getElementById(itemId);
+    item.classList.toggle('expanded');
+}
+
+function copyContent(contentId) {
+    const pre = document.getElementById(contentId);
+    const text = pre.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = pre.nextElementSibling;
+        const originalText = btn.textContent;
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => {
+            btn.textContent = originalText;
+        }, 1500);
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
+}
+
+function filterBySubdir(subdir, clickedTab) {
+    const items = document.querySelectorAll('.expandable-item');
+    const tabs = document.querySelectorAll('.filter-tab');
+    const filterInfo = document.getElementById('filter-info');
+    let visibleCount = 0;
+
+    // Update active tab
+    tabs.forEach(tab => tab.classList.remove('active'));
+    clickedTab.classList.add('active');
+
+    // Filter items
+    items.forEach(item => {
+        if (subdir === 'all') {
+            item.classList.remove('hidden');
+            visibleCount++;
+        } else {
+            const itemSubdir = item.getAttribute('data-subdir');
+            if (itemSubdir === subdir) {
+                item.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                item.classList.add('hidden');
+                // Collapse hidden items
+                item.classList.remove('expanded');
+            }
+        }
+    });
+
+    // Update info text
+    if (filterInfo) {
+        if (subdir === 'all') {
+            filterInfo.innerHTML = `Showing all <strong>${visibleCount}</strong> pages`;
+        } else {
+            filterInfo.innerHTML = `Showing <strong>${visibleCount}</strong> pages in <strong>${subdir}</strong>`;
+        }
+    }
+}
+
+function toggleMinorSubdirs(btn) {
+    const minorContainer = document.getElementById('minor-subdirs');
+    if (minorContainer) {
+        minorContainer.classList.toggle('visible');
+        btn.classList.toggle('active');
+        if (minorContainer.classList.contains('visible')) {
+            btn.textContent = 'Hide minor subdirectories';
+        } else {
+            // Get count from the minor subdirs
+            const count = minorContainer.querySelectorAll('.filter-tab').length;
+            btn.textContent = `Show ${count} minor subdirectories`;
+        }
+    }
+}
+</script>
+{% endblock %}

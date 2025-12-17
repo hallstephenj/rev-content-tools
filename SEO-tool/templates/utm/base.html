@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTM Tool - Reverent Content Co.</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #fafafa;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            background: #fff;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 16px 0;
+        }
+
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .site-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a1a;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .site-title > span {
+            color: #888;
+            font-weight: 400;
+        }
+
+        .tool-picker-menu span {
+            color: inherit !important;
+        }
+
+        /* Tool Picker Dropdown */
+        .tool-picker {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tool-picker-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .tool-picker-btn:hover {
+            background: #2d2d2d;
+        }
+
+        .tool-picker-btn .chevron {
+            font-size: 8px;
+            opacity: 0.5;
+            margin-left: 2px;
+        }
+
+        .tool-picker-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            background: #1a1a1a;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            min-width: 160px;
+            z-index: 1000;
+            overflow: hidden;
+            padding: 4px 0;
+        }
+
+        .tool-picker-menu.open {
+            display: block;
+        }
+
+        .tool-picker-label {
+            padding: 6px 10px 4px;
+            font-size: 9px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        a.tool-picker-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            color: #fff !important;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.1s ease;
+            text-decoration: none;
+        }
+
+        a.tool-picker-item:hover {
+            background: #2a2a2a;
+            color: #fff !important;
+        }
+
+        a.tool-picker-item.active {
+            background: #2a2a2a;
+            color: #fff !important;
+        }
+
+        .tool-picker-item .check {
+            font-size: 10px;
+            color: #3b82f6;
+            opacity: 0;
+        }
+
+        .tool-picker-item.active .check {
+            opacity: 1;
+        }
+
+        .tool-picker-divider {
+            height: 1px;
+            background: #333;
+            margin: 4px 0;
+        }
+
+        /* Navigation */
+        nav {
+            background: #fff;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 0;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 0;
+        }
+
+        nav a {
+            display: block;
+            padding: 12px 16px;
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 450;
+            transition: color 0.15s ease;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+        }
+
+        nav a:hover {
+            color: #1a1a1a;
+        }
+
+        nav a.active {
+            color: #1a1a1a;
+            border-bottom-color: #1a1a1a;
+        }
+
+        /* Main content area */
+        main {
+            padding: 32px 0 64px;
+        }
+
+        /* Cards */
+        .card {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .card h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .card > p {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 0;
+        }
+
+        .card h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 24px 0 12px 0;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            color: #1a1a1a;
+            background: #fff;
+            transition: border-color 0.15s ease;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            appearance: checkbox !important;
+            -webkit-appearance: checkbox !important;
+            width: auto !important;
+            height: auto !important;
+            background: none !important;
+            border: none !important;
+            accent-color: #555;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #888;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #aaa;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* Buttons */
+        button, .btn {
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        button:hover, .btn:hover {
+            background: #333;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #1a1a1a;
+            border: 1px solid #d0d0d0;
+        }
+
+        .btn-secondary:hover {
+            background: #eee;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            padding: 20px;
+            border-radius: 4px;
+            text-align: left;
+        }
+
+        .stat-card h3 {
+            font-size: 28px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-card p {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin: 0;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .alert-success {
+            background: #f6f9f6;
+            color: #1a1a1a;
+            border: 1px solid #c8dcc8;
+        }
+
+        .alert-error {
+            background: #fdf6f6;
+            color: #1a1a1a;
+            border: 1px solid #e5c8c8;
+        }
+
+        /* Tables */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        th {
+            font-weight: 600;
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        td {
+            color: #1a1a1a;
+        }
+
+        tr:hover td {
+            background: #fafafa;
+        }
+
+        /* Links */
+        a {
+            color: #1a1a1a;
+        }
+
+        .card a {
+            color: #666;
+            text-decoration: underline;
+            text-decoration-color: #ccc;
+            text-underline-offset: 2px;
+        }
+
+        .card a:hover {
+            color: #1a1a1a;
+            text-decoration-color: #888;
+        }
+
+        .card a.btn {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .card a.btn.btn-secondary {
+            color: #1a1a1a;
+        }
+
+        /* Utility */
+        .mono {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 12px;
+        }
+
+        .text-muted {
+            color: #888;
+        }
+
+        .text-sm {
+            font-size: 12px;
+        }
+
+        .mt-2 { margin-top: 8px; }
+        .mt-4 { margin-top: 16px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-4 { margin-bottom: 16px; }
+
+        .truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 300px;
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border: 1px solid #e5e5e5;
+            border-radius: 999px;
+            font-size: 11px;
+            color: #666;
+            background: #fafafa;
+        }
+
+        .copy-btn {
+            background: none;
+            border: 1px solid #d0d0d0;
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #666;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .copy-btn:hover {
+            background: #f5f5f5;
+            color: #1a1a1a;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #e5e5e5;
+            margin: 24px 0;
+        }
+
+        .inline-form {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .inline-form .form-group {
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #888;
+        }
+
+        .empty-state h3 {
+            color: #666;
+            margin-bottom: 8px;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="site-title">
+                <div class="tool-picker">
+                    <button class="tool-picker-btn" onclick="toggleToolPicker(event)">
+                        <span>UTM Tool</span>
+                        <span class="chevron">▼</span>
+                    </button>
+                    <div class="tool-picker-menu" id="toolPickerMenu">
+                        <div class="tool-picker-label">Tools</div>
+                        <a href="/" class="tool-picker-item">
+                            <span>SEO Tool</span>
+                            <span class="check">✓</span>
+                        </a>
+                        <a href="/utm" class="tool-picker-item active">
+                            <span>UTM Tool</span>
+                            <span class="check">✓</span>
+                        </a>
+                        <a href="/campaign" class="tool-picker-item">
+                            <span>Campaign Tool</span>
+                            <span class="check">✓</span>
+                        </a>
+                        <div class="tool-picker-divider"></div>
+                        <div class="tool-picker-label">Account</div>
+                        <a href="/settings" class="tool-picker-item">
+                            <span>Settings</span>
+                            <span class="check">✓</span>
+                        </a>
+                    </div>
+                </div>
+                <span>/ Reverent Content Co.</span>
+            </div>
+        </div>
+    </header>
+
+    <script>
+    function toggleToolPicker(e) {
+        e.stopPropagation();
+        const menu = document.getElementById('toolPickerMenu');
+        menu.classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('toolPickerMenu');
+        if (!e.target.closest('.tool-picker')) {
+            menu.classList.remove('open');
+        }
+    });
+
+    // Defensive: keep the browser tab title stable across UTM Tool pages.
+    // (Helps if the browser is showing cached HTML with an older <title>.)
+    document.addEventListener('DOMContentLoaded', function() {
+        document.title = 'UTM Tool - Reverent Content Co.';
+    });
+    </script>
+
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="/utm" class="{% if request.path == '/utm' %}active{% endif %}">Overview</a></li>
+                <li><a href="/utm/generate" class="{% if request.path == '/utm/generate' %}active{% endif %}">Generate Link</a></li>
+                <li><a href="/utm/library" class="{% if request.path == '/utm/library' %}active{% endif %}">Link Library</a></li>
+                <li><a href="/utm/policy" class="{% if request.path == '/utm/policy' %}active{% endif %}">Policy</a></li>
+                <li><a href="/utm/channels" class="{% if request.path == '/utm/channels' %}active{% endif %}">Channels</a></li>
+                <li><a href="/utm/audit" class="{% if request.path == '/utm/audit' %}active{% endif %}">Audit Log</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

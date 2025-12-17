@@ -902,6 +902,303 @@ def api_channel_defaults(channel_id):
         session.close()
 
 
+# ============== CDJ Tool Routes ==============
+
+@app.route('/cdj')
+@login_required
+def cdj_index():
+    """CDJ Tool home page"""
+    wizard_completed = db.cdj_wizard_completed(current_user.id)
+
+    if wizard_completed:
+        market_context = db.get_market_context(current_user.id)
+        segments = db.get_customer_segments(current_user.id)
+
+        segment_count = len(segments)
+        primary_count = sum(1 for s in segments if s.is_primary)
+        secondary_count = segment_count - primary_count
+
+        return render_template('cdj/index.html',
+            wizard_completed=True,
+            market_context=market_context,
+            segments=segments,
+            segment_count=segment_count,
+            primary_count=primary_count,
+            secondary_count=secondary_count
+        )
+    else:
+        return render_template('cdj/index.html', wizard_completed=False)
+
+
+@app.route('/cdj/wizard/start')
+@login_required
+def cdj_wizard_start():
+    """Start or restart the CDJ wizard"""
+    return redirect(url_for('cdj_wizard_step', step=1))
+
+
+@app.route('/cdj/wizard/<int:step>', methods=['GET', 'POST'])
+@login_required
+def cdj_wizard_step(step):
+    """Handle wizard steps"""
+    if step < 1 or step > 7:
+        return redirect(url_for('cdj_wizard_step', step=1))
+
+    # Step 1: Market Context
+    if step == 1:
+        if request.method == 'POST':
+            industry_category = request.form.get('industry_category', '').strip()
+            business_model = request.form.get('business_model', '').strip()
+            purchase_size_range = request.form.get('purchase_size_range', '').strip()
+
+            if industry_category and business_model and purchase_size_range:
+                db.save_market_context(
+                    current_user.id,
+                    industry_category,
+                    business_model,
+                    purchase_size_range
+                )
+                return redirect(url_for('cdj_wizard_step', step=2))
+
+        market_context = db.get_market_context(current_user.id)
+        return render_template('cdj/wizard.html', step=1, market_context=market_context)
+
+    # Step 2: Define Segments
+    elif step == 2:
+        if request.method == 'POST':
+            segment_name = request.form.get('segment_name', '').strip()
+            is_primary = 1 if request.form.get('is_primary') == '1' else 0
+
+            if segment_name:
+                db.create_customer_segment(current_user.id, segment_name, is_primary)
+                return redirect(url_for('cdj_wizard_step', step=2))
+
+        market_context = db.get_market_context(current_user.id)
+        segments = db.get_customer_segments(current_user.id)
+        return render_template('cdj/wizard.html', step=2, market_context=market_context, segments=segments)
+
+    # Steps 3-7: Per-segment data collection
+    else:
+        segments = db.get_customer_segments(current_user.id)
+
+        if not segments:
+            return redirect(url_for('cdj_wizard_step', step=2))
+
+        # Determine which segment we're working on based on session or first incomplete
+        segment_index = int(request.args.get('segment_index', 0))
+        if segment_index >= len(segments):
+            segment_index = 0
+
+        current_segment = segments[segment_index]
+
+        if request.method == 'POST':
+            segment_id = int(request.form.get('segment_id'))
+            update_data = {}
+
+            # Step 3: Segment Definition
+            if step == 3:
+                update_data['description'] = request.form.get('description', '').strip()
+                update_data['core_jtbd'] = request.form.get('core_jtbd', '').strip()
+                update_data['primary_problem'] = request.form.get('primary_problem', '').strip()
+
+            # Step 4: Economic Reality
+            elif step == 4:
+                update_data['purchasing_power'] = request.form.get('purchasing_power', '').strip()
+                update_data['budget_ownership'] = request.form.get('budget_ownership', '').strip()
+                update_data['price_sensitivity'] = request.form.get('price_sensitivity', '').strip()
+
+            # Step 5: Decision Drivers
+            elif step == 5:
+                update_data['decision_criteria_1'] = request.form.get('decision_criteria_1', '').strip()
+                update_data['decision_criteria_2'] = request.form.get('decision_criteria_2', '').strip()
+                update_data['decision_criteria_3'] = request.form.get('decision_criteria_3', '').strip()
+                update_data['emotional_driver'] = request.form.get('emotional_driver', '').strip()
+                update_data['rational_driver'] = request.form.get('rational_driver', '').strip()
+
+            # Step 6: Objections & Friction
+            elif step == 6:
+                update_data['primary_objection'] = request.form.get('primary_objection', '').strip()
+                update_data['secondary_objection'] = request.form.get('secondary_objection', '').strip()
+                update_data['biggest_blocker'] = request.form.get('biggest_blocker', '').strip()
+
+            # Step 7: Decision Journey
+            elif step == 7:
+                update_data['trigger_moment'] = request.form.get('trigger_moment', '').strip()
+                update_data['evaluation_behavior'] = request.form.get('evaluation_behavior', '').strip()
+                update_data['decision_ending_factor'] = request.form.get('decision_ending_factor', '').strip()
+
+            db.update_customer_segment(segment_id, current_user.id, **update_data)
+
+            # Determine next step
+            if step == 7:
+                # Move to next segment or complete
+                if segment_index < len(segments) - 1:
+                    return redirect(url_for('cdj_wizard_step', step=3, segment_index=segment_index + 1))
+                else:
+                    return redirect(url_for('cdj_index'))
+            else:
+                return redirect(url_for('cdj_wizard_step', step=step + 1, segment_index=segment_index))
+
+        return render_template('cdj/wizard.html',
+            step=step,
+            current_segment=current_segment,
+            segment_index=segment_index,
+            total_segments=len(segments)
+        )
+
+
+@app.route('/cdj/wizard/2/delete/<int:segment_id>', methods=['POST'])
+@login_required
+def cdj_wizard_delete_segment(segment_id):
+    """Delete a segment during wizard"""
+    db.delete_customer_segment(segment_id, current_user.id)
+    return redirect(url_for('cdj_wizard_step', step=2))
+
+
+@app.route('/cdj/market-context', methods=['GET', 'POST'])
+@login_required
+def cdj_market_context():
+    """View and edit market context"""
+    if request.method == 'POST':
+        industry_category = request.form.get('industry_category', '').strip()
+        business_model = request.form.get('business_model', '').strip()
+        purchase_size_range = request.form.get('purchase_size_range', '').strip()
+
+        if industry_category and business_model and purchase_size_range:
+            db.save_market_context(
+                current_user.id,
+                industry_category,
+                business_model,
+                purchase_size_range
+            )
+            return redirect(url_for('cdj_market_context', saved=1))
+
+    market_context = db.get_market_context(current_user.id)
+    saved = request.args.get('saved')
+
+    return render_template('cdj/market_context.html',
+        market_context=market_context,
+        saved=saved
+    )
+
+
+@app.route('/cdj/segments')
+@login_required
+def cdj_segments():
+    """List all customer segments"""
+    segments = db.get_customer_segments(current_user.id)
+    return render_template('cdj/segments.html', segments=segments)
+
+
+@app.route('/cdj/segment/new', methods=['GET', 'POST'])
+@login_required
+def cdj_segment_new():
+    """Create a new customer segment"""
+    if request.method == 'POST':
+        segment_name = request.form.get('segment_name', '').strip()
+
+        if not segment_name:
+            return render_template('cdj/segment.html',
+                segment=None,
+                error='Segment name is required'
+            )
+
+        is_primary = 1 if request.form.get('is_primary') == '1' else 0
+
+        # Create the segment
+        segment_id = db.create_customer_segment(current_user.id, segment_name, is_primary)
+
+        if segment_id:
+            # Update with all the other fields
+            update_data = {
+                'description': request.form.get('description', '').strip() or None,
+                'core_jtbd': request.form.get('core_jtbd', '').strip() or None,
+                'primary_problem': request.form.get('primary_problem', '').strip() or None,
+                'purchasing_power': request.form.get('purchasing_power', '').strip() or None,
+                'budget_ownership': request.form.get('budget_ownership', '').strip() or None,
+                'price_sensitivity': request.form.get('price_sensitivity', '').strip() or None,
+                'decision_criteria_1': request.form.get('decision_criteria_1', '').strip() or None,
+                'decision_criteria_2': request.form.get('decision_criteria_2', '').strip() or None,
+                'decision_criteria_3': request.form.get('decision_criteria_3', '').strip() or None,
+                'emotional_driver': request.form.get('emotional_driver', '').strip() or None,
+                'rational_driver': request.form.get('rational_driver', '').strip() or None,
+                'primary_objection': request.form.get('primary_objection', '').strip() or None,
+                'secondary_objection': request.form.get('secondary_objection', '').strip() or None,
+                'biggest_blocker': request.form.get('biggest_blocker', '').strip() or None,
+                'trigger_moment': request.form.get('trigger_moment', '').strip() or None,
+                'evaluation_behavior': request.form.get('evaluation_behavior', '').strip() or None,
+                'decision_ending_factor': request.form.get('decision_ending_factor', '').strip() or None,
+            }
+
+            db.update_customer_segment(segment_id, current_user.id, **update_data)
+
+            return redirect(url_for('cdj_segment_view', segment_id=segment_id, saved=1, is_new=1))
+        else:
+            return render_template('cdj/segment.html',
+                segment=None,
+                error='Failed to create segment'
+            )
+
+    return render_template('cdj/segment.html', segment=None)
+
+
+@app.route('/cdj/segment/<int:segment_id>', methods=['GET', 'POST'])
+@login_required
+def cdj_segment_view(segment_id):
+    """View and edit a customer segment"""
+    segment = db.get_customer_segment_by_id(segment_id, current_user.id)
+
+    if not segment:
+        return "Segment not found", 404
+
+    if request.method == 'POST':
+        # Update all fields
+        is_primary = 1 if request.form.get('is_primary') == '1' else 0
+
+        update_data = {
+            'segment_name': request.form.get('segment_name', '').strip(),
+            'is_primary': is_primary,
+            'description': request.form.get('description', '').strip() or None,
+            'core_jtbd': request.form.get('core_jtbd', '').strip() or None,
+            'primary_problem': request.form.get('primary_problem', '').strip() or None,
+            'purchasing_power': request.form.get('purchasing_power', '').strip() or None,
+            'budget_ownership': request.form.get('budget_ownership', '').strip() or None,
+            'price_sensitivity': request.form.get('price_sensitivity', '').strip() or None,
+            'decision_criteria_1': request.form.get('decision_criteria_1', '').strip() or None,
+            'decision_criteria_2': request.form.get('decision_criteria_2', '').strip() or None,
+            'decision_criteria_3': request.form.get('decision_criteria_3', '').strip() or None,
+            'emotional_driver': request.form.get('emotional_driver', '').strip() or None,
+            'rational_driver': request.form.get('rational_driver', '').strip() or None,
+            'primary_objection': request.form.get('primary_objection', '').strip() or None,
+            'secondary_objection': request.form.get('secondary_objection', '').strip() or None,
+            'biggest_blocker': request.form.get('biggest_blocker', '').strip() or None,
+            'trigger_moment': request.form.get('trigger_moment', '').strip() or None,
+            'evaluation_behavior': request.form.get('evaluation_behavior', '').strip() or None,
+            'decision_ending_factor': request.form.get('decision_ending_factor', '').strip() or None,
+        }
+
+        db.update_customer_segment(segment_id, current_user.id, **update_data)
+
+        return redirect(url_for('cdj_segment_view', segment_id=segment_id, saved=1))
+
+    saved = request.args.get('saved')
+    is_new = request.args.get('is_new')
+
+    return render_template('cdj/segment.html',
+        segment=segment,
+        saved=saved,
+        is_new=is_new
+    )
+
+
+@app.route('/cdj/segment/<int:segment_id>/delete', methods=['POST'])
+@login_required
+def cdj_segment_delete(segment_id):
+    """Delete a customer segment"""
+    db.delete_customer_segment(segment_id, current_user.id)
+    return redirect(url_for('cdj_segments'))
+
+
 if __name__ == '__main__':
     host = os.environ.get('HOST', '0.0.0.0')
     port = int(os.environ.get('PORT', '5000'))

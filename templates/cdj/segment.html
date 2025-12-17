@@ -1,0 +1,174 @@
+{% extends "cdj/base.html" %}
+
+{% block content %}
+{% if saved %}
+<div class="alert alert-success">
+    Segment {% if is_new %}created{% else %}updated{% endif %} successfully.
+</div>
+{% endif %}
+
+{% if error %}
+<div class="alert alert-error">
+    {{ error }}
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>{% if segment %}Edit{% else %}New{% endif %} Customer Segment</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        {% if segment %}
+        Update the details for this customer segment.
+        {% else %}
+        Create a new customer segment with complete decision journey data.
+        {% endif %}
+    </p>
+
+    <form method="POST" action="{% if segment %}/cdj/segment/{{ segment.id }}{% else %}/cdj/segment/new{% endif %}">
+        <h3>Basic Information</h3>
+        <div class="form-group">
+            <label>Segment Name</label>
+            <input type="text" name="segment_name" value="{{ segment.segment_name if segment else '' }}" placeholder="e.g., Enterprise IT Buyers" required>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="is_primary" value="1" {% if segment and segment.is_primary %}checked{% endif %}>
+                Mark as Primary Segment
+            </label>
+            <div class="label-tip">Primary segments are your main focus</div>
+        </div>
+
+        <hr>
+
+        <h3>Segment Definition</h3>
+        <div class="form-group">
+            <label>One-Paragraph Description</label>
+            <div class="label-tip">Describe this segment's motivation, not just their behavior</div>
+            <textarea name="description" rows="4">{{ segment.description if segment else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Core Job-to-be-Done</label>
+            <div class="label-tip">What are they fundamentally trying to accomplish?</div>
+            <textarea name="core_jtbd" rows="3">{{ segment.core_jtbd if segment else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Primary Problem</label>
+            <div class="label-tip">What specific problem does your product solve for them?</div>
+            <textarea name="primary_problem" rows="3">{{ segment.primary_problem if segment else '' }}</textarea>
+        </div>
+
+        <hr>
+
+        <h3>Economic Reality</h3>
+        <div class="form-group">
+            <label>Purchasing Power</label>
+            <div class="label-tip">What budget range can they access?</div>
+            <input type="text" name="purchasing_power" value="{{ segment.purchasing_power if segment else '' }}" placeholder="e.g., $10K-$100K annual budget">
+        </div>
+
+        <div class="form-group">
+            <label>Budget Ownership</label>
+            <div class="label-tip">Who controls the money? Do they need approval?</div>
+            <input type="text" name="budget_ownership" value="{{ segment.budget_ownership if segment else '' }}" placeholder="e.g., Direct control, Needs VP approval">
+        </div>
+
+        <div class="form-group">
+            <label>Price Sensitivity</label>
+            <select name="price_sensitivity">
+                <option value="">Select...</option>
+                <option value="Low" {% if segment and segment.price_sensitivity == 'Low' %}selected{% endif %}>Low - Value matters more than price</option>
+                <option value="Medium" {% if segment and segment.price_sensitivity == 'Medium' %}selected{% endif %}>Medium - Balanced consideration</option>
+                <option value="High" {% if segment and segment.price_sensitivity == 'High' %}selected{% endif %}>High - Price is a major factor</option>
+            </select>
+        </div>
+
+        <hr>
+
+        <h3>Decision Drivers</h3>
+        <div class="form-group">
+            <label>Top Decision Criterion #1</label>
+            <input type="text" name="decision_criteria_1" value="{{ segment.decision_criteria_1 if segment else '' }}" placeholder="Most important factor">
+        </div>
+
+        <div class="form-group">
+            <label>Top Decision Criterion #2</label>
+            <input type="text" name="decision_criteria_2" value="{{ segment.decision_criteria_2 if segment else '' }}" placeholder="Second most important">
+        </div>
+
+        <div class="form-group">
+            <label>Top Decision Criterion #3</label>
+            <input type="text" name="decision_criteria_3" value="{{ segment.decision_criteria_3 if segment else '' }}" placeholder="Third most important">
+        </div>
+
+        <div class="form-group">
+            <label>Primary Emotional Driver</label>
+            <div class="label-tip">What emotional need drives their decision?</div>
+            <textarea name="emotional_driver" rows="3">{{ segment.emotional_driver if segment else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Primary Rational Driver</label>
+            <div class="label-tip">What logical justification do they need?</div>
+            <textarea name="rational_driver" rows="3">{{ segment.rational_driver if segment else '' }}</textarea>
+        </div>
+
+        <hr>
+
+        <h3>Objections & Friction</h3>
+        <div class="form-group">
+            <label>Primary Objection</label>
+            <div class="label-tip">The main reason they hesitate or say no</div>
+            <textarea name="primary_objection" rows="3">{{ segment.primary_objection if segment else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Secondary Objection</label>
+            <textarea name="secondary_objection" rows="3">{{ segment.secondary_objection if segment else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Biggest Blocker to Action</label>
+            <div class="label-tip">What stops them from moving forward even when interested?</div>
+            <textarea name="biggest_blocker" rows="3">{{ segment.biggest_blocker if segment else '' }}</textarea>
+        </div>
+
+        <hr>
+
+        <h3>Decision Journey</h3>
+        <div class="form-group">
+            <label>Trigger Moment</label>
+            <div class="label-tip">What event or realization starts their buying journey?</div>
+            <textarea name="trigger_moment" rows="3">{{ segment.trigger_moment if segment else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Evaluation Behavior</label>
+            <div class="label-tip">How do they research and compare options?</div>
+            <textarea name="evaluation_behavior" rows="3">{{ segment.evaluation_behavior if segment else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Decision-Ending Factor</label>
+            <div class="label-tip">What finally pushes them to commit (or walk away)?</div>
+            <textarea name="decision_ending_factor" rows="3">{{ segment.decision_ending_factor if segment else '' }}</textarea>
+        </div>
+
+        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e5e5; display: flex; justify-content: space-between;">
+            <div>
+                <button type="submit" class="btn">Save Segment</button>
+                <a href="/cdj/segments" class="btn btn-secondary" style="margin-left: 8px;">Cancel</a>
+            </div>
+            {% if segment %}
+            <button type="button" onclick="if(confirm('Are you sure you want to delete this segment?')) { document.getElementById('deleteForm').submit(); }" class="btn btn-danger">Delete Segment</button>
+            {% endif %}
+        </div>
+    </form>
+
+    {% if segment %}
+    <form id="deleteForm" method="POST" action="/cdj/segment/{{ segment.id }}/delete" style="display: none;">
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

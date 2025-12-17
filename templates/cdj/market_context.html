@@ -1,0 +1,46 @@
+{% extends "cdj/base.html" %}
+
+{% block content %}
+{% if saved %}
+<div class="alert alert-success">
+    Market context updated successfully.
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>Market Context</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Global context that applies to your entire business and all customer segments.
+    </p>
+
+    <form method="POST" action="/cdj/market-context">
+        <div class="form-group">
+            <label>Industry / Category</label>
+            <div class="label-tip">What industry or category does your business operate in?</div>
+            <input type="text" name="industry_category" value="{{ market_context.industry_category or '' }}" placeholder="e.g., B2B SaaS, E-commerce Fashion, Professional Services" required>
+        </div>
+
+        <div class="form-group">
+            <label>Business Model</label>
+            <div class="label-tip">How do you sell to customers?</div>
+            <select name="business_model" required>
+                <option value="">Select...</option>
+                <option value="B2B" {% if market_context and market_context.business_model == 'B2B' %}selected{% endif %}>B2B</option>
+                <option value="B2C" {% if market_context and market_context.business_model == 'B2C' %}selected{% endif %}>B2C</option>
+                <option value="Hybrid" {% if market_context and market_context.business_model == 'Hybrid' %}selected{% endif %}>Hybrid (B2B + B2C)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Typical Purchase Size (Range)</label>
+            <div class="label-tip">Ranges are sufficient - what do customers typically spend?</div>
+            <input type="text" name="purchase_size_range" value="{{ market_context.purchase_size_range or '' }}" placeholder="e.g., $50-$500, $5K-$50K, $100K+" required>
+        </div>
+
+        <div style="margin-top: 24px;">
+            <button type="submit" class="btn">Save Changes</button>
+            <a href="/cdj" class="btn btn-secondary" style="margin-left: 8px;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

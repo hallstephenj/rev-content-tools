@@ -328,6 +328,110 @@ class CustomerSegment(Base):
         return f"<CustomerSegment(name='{self.segment_name}', primary={self.is_primary})>"
 
 
+# ============== GTM Tool Models ==============
+
+class GTMCampaign(Base):
+    """Go-To-Market Campaign - main campaign record"""
+    __tablename__ = 'gtm_campaigns'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+    # Step 1: Campaign Type & Intent
+    campaign_type = Column(String(100))  # report, webinar, tool, video, launch, other
+    primary_goal = Column(String(100))  # lead_gen, pipeline, education, activation, authority
+
+    # Step 2: Content Title
+    primary_title = Column(String(500))
+    working_title = Column(String(500))
+
+    # Step 3: Subtitle
+    subtitle = Column(Text)
+
+    # Step 4: Formal Campaign Name
+    internal_campaign_name = Column(String(500))
+    campaign_code = Column(String(100))
+
+    # Step 6: Campaign Overview
+    overview_paragraph_1 = Column(Text)  # Context + problem
+    overview_paragraph_2 = Column(Text)  # What this delivers
+
+    # Step 7: Logistics (for webinars, launches, live events)
+    event_date = Column(String(100))
+    event_time = Column(String(100))
+    event_timezone = Column(String(100))
+    event_duration = Column(String(100))
+
+    # Step 8: Key Messages
+    key_message_relevance = Column(Text)  # What's happening right now that makes this relevant?
+    key_message_why_now = Column(Text)  # Why does this matter now?
+    key_message_takeaway = Column(Text)  # What will someone walk away with?
+    key_message_questions = Column(Text)  # What questions will this answer?
+
+    # Step 9: Distribution Channels
+    channels_owned = Column(Text)  # JSON array
+    channels_earned = Column(Text)  # JSON array
+    channels_paid = Column(Text)  # JSON array
+
+    # Step 11: Calls to Action
+    primary_cta = Column(String(500))
+    secondary_cta = Column(String(500))
+    post_conversion_step = Column(Text)
+
+    # Wizard tracking
+    current_step = Column(Integer, default=1)
+    wizard_completed = Column(Integer, default=0)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    contributors = relationship('GTMContributor', backref='campaign', lazy=True, cascade='all, delete-orphan')
+    personas = relationship('GTMPersona', backref='campaign', lazy=True, cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f"<GTMCampaign(title='{self.primary_title}', type='{self.campaign_type}')>"
+
+
+class GTMContributor(Base):
+    """Contributors/Guests for a GTM Campaign (Step 5)"""
+    __tablename__ = 'gtm_contributors'
+
+    id = Column(Integer, primary_key=True)
+    campaign_id = Column(Integer, ForeignKey('gtm_campaigns.id'), nullable=False)
+
+    name = Column(String(255), nullable=False)
+    title = Column(String(255))
+    organization = Column(String(255))
+    role = Column(String(100))  # host, guest, expert
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<GTMContributor(name='{self.name}', role='{self.role}')>"
+
+
+class GTMPersona(Base):
+    """Audience Personas for a GTM Campaign (Step 10)"""
+    __tablename__ = 'gtm_personas'
+
+    id = Column(Integer, primary_key=True)
+    campaign_id = Column(Integer, ForeignKey('gtm_campaigns.id'), nullable=False)
+
+    # Link to CDJ segment (optional)
+    cdj_segment_id = Column(Integer, ForeignKey('cdj_customer_segments.id'), nullable=True)
+
+    persona_name = Column(String(255), nullable=False)
+    core_pain = Column(Text)
+    messaging_angle = Column(Text)
+    objection_to_address = Column(Text)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<GTMPersona(name='{self.persona_name}')>"
+
+
 class Database:
     """Database manager"""
 
@@ -1056,5 +1160,215 @@ class Database:
             has_context = session.query(MarketContext).filter_by(user_id=user_id).first() is not None
             has_segments = session.query(CustomerSegment).filter_by(user_id=user_id).count() > 0
             return has_context and has_segments
+        finally:
+            session.close()
+
+    # ============== GTM Tool Methods ==============
+
+    def create_gtm_campaign(self, user_id):
+        """Create a new GTM campaign and return its ID"""
+        session = self.get_session()
+        try:
+            campaign = GTMCampaign(user_id=user_id)
+            session.add(campaign)
+            session.commit()
+            return campaign.id
+        except Exception as e:
+            session.rollback()
+            print(f"Error creating GTM campaign: {e}")
+            return None
+        finally:
+            session.close()
+
+    def get_gtm_campaign(self, campaign_id, user_id):
+        """Get a GTM campaign by ID"""
+        session = self.get_session()
+        try:
+            campaign = session.query(GTMCampaign).filter_by(id=campaign_id, user_id=user_id).first()
+            if campaign:
+                session.expunge(campaign)
+            return campaign
+        finally:
+            session.close()
+
+    def get_gtm_campaigns(self, user_id):
+        """Get all GTM campaigns for a user"""
+        session = self.get_session()
+        try:
+            return session.query(GTMCampaign).filter_by(user_id=user_id).order_by(GTMCampaign.updated_at.desc()).all()
+        finally:
+            session.close()
+
+    def get_current_gtm_campaign(self, user_id):
+        """Get the most recent incomplete GTM campaign, or None"""
+        session = self.get_session()
+        try:
+            campaign = session.query(GTMCampaign).filter_by(
+                user_id=user_id, wizard_completed=0
+            ).order_by(GTMCampaign.updated_at.desc()).first()
+            if campaign:
+                session.expunge(campaign)
+            return campaign
+        finally:
+            session.close()
+
+    def update_gtm_campaign(self, campaign_id, user_id, **kwargs):
+        """Update a GTM campaign with arbitrary fields"""
+        session = self.get_session()
+        try:
+            campaign = session.query(GTMCampaign).filter_by(id=campaign_id, user_id=user_id).first()
+            if campaign:
+                for key, value in kwargs.items():
+                    if hasattr(campaign, key):
+                        setattr(campaign, key, value)
+                session.commit()
+                return True
+            return False
+        except Exception as e:
+            session.rollback()
+            print(f"Error updating GTM campaign: {e}")
+            return False
+        finally:
+            session.close()
+
+    def delete_gtm_campaign(self, campaign_id, user_id):
+        """Delete a GTM campaign"""
+        session = self.get_session()
+        try:
+            campaign = session.query(GTMCampaign).filter_by(id=campaign_id, user_id=user_id).first()
+            if campaign:
+                session.delete(campaign)
+                session.commit()
+                return True
+            return False
+        except Exception as e:
+            session.rollback()
+            print(f"Error deleting GTM campaign: {e}")
+            return False
+        finally:
+            session.close()
+
+    # GTM Contributors
+    def add_gtm_contributor(self, campaign_id, name, title=None, organization=None, role=None):
+        """Add a contributor to a GTM campaign"""
+        session = self.get_session()
+        try:
+            contributor = GTMContributor(
+                campaign_id=campaign_id,
+                name=name,
+                title=title,
+                organization=organization,
+                role=role
+            )
+            session.add(contributor)
+            session.commit()
+            return contributor.id
+        except Exception as e:
+            session.rollback()
+            print(f"Error adding GTM contributor: {e}")
+            return None
+        finally:
+            session.close()
+
+    def get_gtm_contributors(self, campaign_id):
+        """Get all contributors for a campaign"""
+        session = self.get_session()
+        try:
+            return session.query(GTMContributor).filter_by(campaign_id=campaign_id).all()
+        finally:
+            session.close()
+
+    def delete_gtm_contributor(self, contributor_id, campaign_id):
+        """Delete a contributor"""
+        session = self.get_session()
+        try:
+            contributor = session.query(GTMContributor).filter_by(id=contributor_id, campaign_id=campaign_id).first()
+            if contributor:
+                session.delete(contributor)
+                session.commit()
+                return True
+            return False
+        except Exception as e:
+            session.rollback()
+            print(f"Error deleting GTM contributor: {e}")
+            return False
+        finally:
+            session.close()
+
+    # GTM Personas
+    def add_gtm_persona(self, campaign_id, persona_name, core_pain=None, messaging_angle=None, 
+                        objection_to_address=None, cdj_segment_id=None):
+        """Add a persona to a GTM campaign"""
+        session = self.get_session()
+        try:
+            persona = GTMPersona(
+                campaign_id=campaign_id,
+                persona_name=persona_name,
+                core_pain=core_pain,
+                messaging_angle=messaging_angle,
+                objection_to_address=objection_to_address,
+                cdj_segment_id=cdj_segment_id
+            )
+            session.add(persona)
+            session.commit()
+            return persona.id
+        except Exception as e:
+            session.rollback()
+            print(f"Error adding GTM persona: {e}")
+            return None
+        finally:
+            session.close()
+
+    def get_gtm_personas(self, campaign_id):
+        """Get all personas for a campaign"""
+        session = self.get_session()
+        try:
+            return session.query(GTMPersona).filter_by(campaign_id=campaign_id).all()
+        finally:
+            session.close()
+
+    def update_gtm_persona(self, persona_id, campaign_id, **kwargs):
+        """Update a persona"""
+        session = self.get_session()
+        try:
+            persona = session.query(GTMPersona).filter_by(id=persona_id, campaign_id=campaign_id).first()
+            if persona:
+                for key, value in kwargs.items():
+                    if hasattr(persona, key):
+                        setattr(persona, key, value)
+                session.commit()
+                return True
+            return False
+        except Exception as e:
+            session.rollback()
+            print(f"Error updating GTM persona: {e}")
+            return False
+        finally:
+            session.close()
+
+    def delete_gtm_persona(self, persona_id, campaign_id):
+        """Delete a persona"""
+        session = self.get_session()
+        try:
+            persona = session.query(GTMPersona).filter_by(id=persona_id, campaign_id=campaign_id).first()
+            if persona:
+                session.delete(persona)
+                session.commit()
+                return True
+            return False
+        except Exception as e:
+            session.rollback()
+            print(f"Error deleting GTM persona: {e}")
+            return False
+        finally:
+            session.close()
+
+    def get_completed_gtm_campaigns(self, user_id):
+        """Get all completed GTM campaigns for a user"""
+        session = self.get_session()
+        try:
+            return session.query(GTMCampaign).filter_by(
+                user_id=user_id, wizard_completed=1
+            ).order_by(GTMCampaign.updated_at.desc()).all()
         finally:
             session.close()

@@ -1,0 +1,52 @@
+{% extends "gtm/base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h1 style="font-size: 20px; font-weight: 600; margin: 0;">All Campaigns</h1>
+    <a href="/gtm/wizard/new" class="btn">New Campaign</a>
+</div>
+
+{% if campaigns %}
+<div class="card">
+    <ul class="item-list" style="margin: 0;">
+        {% for campaign in campaigns %}
+        <li class="item-card" style="margin-bottom: {% if loop.last %}0{% else %}12{% endif %}px;">
+            <div>
+                <h4>{{ campaign.primary_title or campaign.internal_campaign_name or 'Untitled Campaign' }}</h4>
+                <p>
+                    <span class="campaign-badge {% if campaign.wizard_completed %}completed{% else %}draft{% endif %}">
+                        {% if campaign.wizard_completed %}Completed{% else %}Draft (Step {{ campaign.current_step }}/11){% endif %}
+                    </span>
+                    {% if campaign.campaign_type %}
+                    <span class="campaign-badge">{{ campaign.campaign_type|replace('_', ' ')|title }}</span>
+                    {% endif %}
+                    {% if campaign.primary_goal %}
+                    <span class="campaign-badge">{{ campaign.primary_goal|replace('_', ' ')|title }}</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="item-actions">
+                {% if campaign.wizard_completed %}
+                <a href="/gtm/campaign/{{ campaign.id }}" class="btn btn-small btn-secondary">View</a>
+                {% else %}
+                <a href="/gtm/wizard/{{ campaign.id }}/{{ campaign.current_step }}" class="btn btn-small">Continue</a>
+                {% endif %}
+                <form method="POST" action="/gtm/campaign/{{ campaign.id }}/delete" style="display: inline;" onsubmit="return confirm('Delete this campaign?');">
+                    <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% else %}
+<div class="card">
+    <h2>No Campaigns Yet</h2>
+    <p style="margin-bottom: 16px;">
+        Start your first GTM campaign to build structured, strategic marketing plans.
+    </p>
+    <a href="/gtm/wizard/new" class="btn">Start New Campaign</a>
+</div>
+{% endif %}
+{% endblock %}
+

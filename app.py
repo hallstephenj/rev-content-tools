@@ -1199,6 +1199,307 @@ def cdj_segment_delete(segment_id):
     return redirect(url_for('cdj_segments'))
 
 
+# ============== GTM Tool Routes ==============
+
+@app.route('/gtm')
+@login_required
+def gtm_index():
+    """GTM Tool home page"""
+    campaigns = db.get_gtm_campaigns(current_user.id)
+    completed_campaigns = [c for c in campaigns if c.wizard_completed]
+    draft_campaign = db.get_current_gtm_campaign(current_user.id)
+    
+    return render_template('gtm/index.html',
+        campaigns=campaigns,
+        completed_campaigns=completed_campaigns,
+        completed_count=len(completed_campaigns),
+        draft_count=len([c for c in campaigns if not c.wizard_completed]),
+        draft_campaign=draft_campaign
+    )
+
+
+@app.route('/gtm/campaigns')
+@login_required
+def gtm_campaigns():
+    """List all GTM campaigns"""
+    campaigns = db.get_gtm_campaigns(current_user.id)
+    return render_template('gtm/campaigns.html', campaigns=campaigns)
+
+
+@app.route('/gtm/wizard/new')
+@login_required
+def gtm_wizard_new():
+    """Start a new GTM campaign wizard"""
+    campaign_id = db.create_gtm_campaign(current_user.id)
+    if campaign_id:
+        return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=1))
+    return redirect(url_for('gtm_index'))
+
+
+@app.route('/gtm/wizard/<int:campaign_id>/<int:step>', methods=['GET', 'POST'])
+@login_required
+def gtm_wizard_step(campaign_id, step):
+    """Handle GTM wizard steps"""
+    campaign = db.get_gtm_campaign(campaign_id, current_user.id)
+    if not campaign:
+        return redirect(url_for('gtm_index'))
+    
+    if step < 1 or step > 11:
+        return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=1))
+
+    # Step 1: Campaign Type & Intent
+    if step == 1:
+        if request.method == 'POST':
+            campaign_type = request.form.get('campaign_type', '').strip()
+            primary_goal = request.form.get('primary_goal', '').strip()
+            
+            if campaign_type and primary_goal:
+                db.update_gtm_campaign(campaign_id, current_user.id,
+                    campaign_type=campaign_type,
+                    primary_goal=primary_goal,
+                    current_step=2
+                )
+                return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=2))
+        
+        return render_template('gtm/wizard.html', step=1, campaign=campaign)
+
+    # Step 2: Content Title
+    elif step == 2:
+        if request.method == 'POST':
+            primary_title = request.form.get('primary_title', '').strip()
+            working_title = request.form.get('working_title', '').strip()
+            
+            if primary_title:
+                db.update_gtm_campaign(campaign_id, current_user.id,
+                    primary_title=primary_title,
+                    working_title=working_title or None,
+                    current_step=3
+                )
+                return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=3))
+        
+        return render_template('gtm/wizard.html', step=2, campaign=campaign)
+
+    # Step 3: Content Subtitle
+    elif step == 3:
+        if request.method == 'POST':
+            subtitle = request.form.get('subtitle', '').strip()
+            db.update_gtm_campaign(campaign_id, current_user.id,
+                subtitle=subtitle or None,
+                current_step=4
+            )
+            return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=4))
+        
+        return render_template('gtm/wizard.html', step=3, campaign=campaign)
+
+    # Step 4: Formal Campaign Name
+    elif step == 4:
+        if request.method == 'POST':
+            internal_campaign_name = request.form.get('internal_campaign_name', '').strip()
+            campaign_code = request.form.get('campaign_code', '').strip()
+            
+            if internal_campaign_name:
+                db.update_gtm_campaign(campaign_id, current_user.id,
+                    internal_campaign_name=internal_campaign_name,
+                    campaign_code=campaign_code or None,
+                    current_step=5
+                )
+                return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=5))
+        
+        return render_template('gtm/wizard.html', step=4, campaign=campaign)
+
+    # Step 5: Contributors / Guests
+    elif step == 5:
+        if request.method == 'POST':
+            action = request.form.get('action', '')
+            
+            if action == 'add':
+                name = request.form.get('name', '').strip()
+                title = request.form.get('title', '').strip()
+                organization = request.form.get('organization', '').strip()
+                role = request.form.get('role', '').strip()
+                
+                if name:
+                    db.add_gtm_contributor(campaign_id, name, title or None, organization or None, role or None)
+                
+                return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=5))
+            
+            elif action == 'continue':
+                db.update_gtm_campaign(campaign_id, current_user.id, current_step=6)
+                return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=6))
+        
+        contributors = db.get_gtm_contributors(campaign_id)
+        return render_template('gtm/wizard.html', step=5, campaign=campaign, contributors=contributors)
+
+    # Step 6: Campaign Overview
+    elif step == 6:
+        if request.method == 'POST':
+            overview_paragraph_1 = request.form.get('overview_paragraph_1', '').strip()
+            overview_paragraph_2 = request.form.get('overview_paragraph_2', '').strip()
+            
+            db.update_gtm_campaign(campaign_id, current_user.id,
+                overview_paragraph_1=overview_paragraph_1 or None,
+                overview_paragraph_2=overview_paragraph_2 or None,
+                current_step=7
+            )
+            return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=7))
+        
+        return render_template('gtm/wizard.html', step=6, campaign=campaign)
+
+    # Step 7: Logistics
+    elif step == 7:
+        if request.method == 'POST':
+            event_date = request.form.get('event_date', '').strip()
+            event_time = request.form.get('event_time', '').strip()
+            event_timezone = request.form.get('event_timezone', '').strip()
+            event_duration = request.form.get('event_duration', '').strip()
+            
+            db.update_gtm_campaign(campaign_id, current_user.id,
+                event_date=event_date or None,
+                event_time=event_time or None,
+                event_timezone=event_timezone or None,
+                event_duration=event_duration or None,
+                current_step=8
+            )
+            return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=8))
+        
+        return render_template('gtm/wizard.html', step=7, campaign=campaign)
+
+    # Step 8: Key Messages
+    elif step == 8:
+        if request.method == 'POST':
+            key_message_relevance = request.form.get('key_message_relevance', '').strip()
+            key_message_why_now = request.form.get('key_message_why_now', '').strip()
+            key_message_takeaway = request.form.get('key_message_takeaway', '').strip()
+            key_message_questions = request.form.get('key_message_questions', '').strip()
+            
+            db.update_gtm_campaign(campaign_id, current_user.id,
+                key_message_relevance=key_message_relevance or None,
+                key_message_why_now=key_message_why_now or None,
+                key_message_takeaway=key_message_takeaway or None,
+                key_message_questions=key_message_questions or None,
+                current_step=9
+            )
+            return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=9))
+        
+        return render_template('gtm/wizard.html', step=8, campaign=campaign)
+
+    # Step 9: Distribution Channels
+    elif step == 9:
+        if request.method == 'POST':
+            channels_owned = request.form.get('channels_owned', '').strip()
+            channels_earned = request.form.get('channels_earned', '').strip()
+            channels_paid = request.form.get('channels_paid', '').strip()
+            
+            db.update_gtm_campaign(campaign_id, current_user.id,
+                channels_owned=channels_owned or None,
+                channels_earned=channels_earned or None,
+                channels_paid=channels_paid or None,
+                current_step=10
+            )
+            return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=10))
+        
+        return render_template('gtm/wizard.html', step=9, campaign=campaign)
+
+    # Step 10: Audience Personas
+    elif step == 10:
+        if request.method == 'POST':
+            action = request.form.get('action', '')
+            
+            if action == 'add':
+                persona_name = request.form.get('persona_name', '').strip()
+                core_pain = request.form.get('core_pain', '').strip()
+                messaging_angle = request.form.get('messaging_angle', '').strip()
+                objection_to_address = request.form.get('objection_to_address', '').strip()
+                cdj_segment_id = request.form.get('cdj_segment_id', '').strip()
+                
+                if persona_name:
+                    db.add_gtm_persona(
+                        campaign_id, 
+                        persona_name, 
+                        core_pain or None, 
+                        messaging_angle or None,
+                        objection_to_address or None,
+                        int(cdj_segment_id) if cdj_segment_id else None
+                    )
+                
+                return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=10))
+            
+            elif action == 'continue':
+                db.update_gtm_campaign(campaign_id, current_user.id, current_step=11)
+                return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=11))
+        
+        personas = db.get_gtm_personas(campaign_id)
+        cdj_segments = db.get_customer_segments(current_user.id)
+        return render_template('gtm/wizard.html', step=10, campaign=campaign, personas=personas, cdj_segments=cdj_segments)
+
+    # Step 11: Calls to Action
+    elif step == 11:
+        if request.method == 'POST':
+            primary_cta = request.form.get('primary_cta', '').strip()
+            secondary_cta = request.form.get('secondary_cta', '').strip()
+            post_conversion_step = request.form.get('post_conversion_step', '').strip()
+            
+            if primary_cta:
+                db.update_gtm_campaign(campaign_id, current_user.id,
+                    primary_cta=primary_cta,
+                    secondary_cta=secondary_cta or None,
+                    post_conversion_step=post_conversion_step or None,
+                    current_step=11,
+                    wizard_completed=1
+                )
+                return redirect(url_for('gtm_campaign_view', campaign_id=campaign_id))
+        
+        return render_template('gtm/wizard.html', step=11, campaign=campaign)
+
+    return redirect(url_for('gtm_index'))
+
+
+@app.route('/gtm/wizard/<int:campaign_id>/5/delete/<int:contributor_id>', methods=['POST'])
+@login_required
+def gtm_wizard_delete_contributor(campaign_id, contributor_id):
+    """Delete a contributor during wizard"""
+    campaign = db.get_gtm_campaign(campaign_id, current_user.id)
+    if campaign:
+        db.delete_gtm_contributor(contributor_id, campaign_id)
+    return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=5))
+
+
+@app.route('/gtm/wizard/<int:campaign_id>/10/delete/<int:persona_id>', methods=['POST'])
+@login_required
+def gtm_wizard_delete_persona(campaign_id, persona_id):
+    """Delete a persona during wizard"""
+    campaign = db.get_gtm_campaign(campaign_id, current_user.id)
+    if campaign:
+        db.delete_gtm_persona(persona_id, campaign_id)
+    return redirect(url_for('gtm_wizard_step', campaign_id=campaign_id, step=10))
+
+
+@app.route('/gtm/campaign/<int:campaign_id>')
+@login_required
+def gtm_campaign_view(campaign_id):
+    """View a completed GTM campaign"""
+    campaign = db.get_gtm_campaign(campaign_id, current_user.id)
+    if not campaign:
+        return redirect(url_for('gtm_index'))
+    
+    contributors = db.get_gtm_contributors(campaign_id)
+    personas = db.get_gtm_personas(campaign_id)
+    
+    return render_template('gtm/campaign.html',
+        campaign=campaign,
+        contributors=contributors,
+        personas=personas
+    )
+
+
+@app.route('/gtm/campaign/<int:campaign_id>/delete', methods=['POST'])
+@login_required
+def gtm_campaign_delete(campaign_id):
+    """Delete a GTM campaign"""
+    db.delete_gtm_campaign(campaign_id, current_user.id)
+    return redirect(url_for('gtm_index'))
+
+
 if __name__ == '__main__':
     host = os.environ.get('HOST', '0.0.0.0')
     port = int(os.environ.get('PORT', '5000'))

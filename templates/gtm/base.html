@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SEO Tool{% endblock %}</title>
+    <title>{% block title %}GTM Tool{% endblock %}</title>
     <style>
         * {
             margin: 0;
@@ -249,9 +249,41 @@
             color: #1a1a1a;
         }
 
+        .label-tip {
+            font-weight: 400;
+            color: #888;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .tip-list {
+            margin-top: 8px;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .tip-list li {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .tip-list li::before {
+            content: "✔";
+            position: absolute;
+            left: 0;
+            color: #22c55e;
+            font-size: 11px;
+        }
+
         input[type="text"],
         input[type="url"],
         input[type="number"],
+        input[type="date"],
+        input[type="time"],
+        select,
         textarea {
             width: 100%;
             padding: 10px 12px;
@@ -264,7 +296,8 @@
             transition: border-color 0.15s ease;
         }
 
-        input[type="checkbox"] {
+        input[type="checkbox"],
+        input[type="radio"] {
             appearance: checkbox !important;
             -webkit-appearance: checkbox !important;
             -moz-appearance: checkbox !important;
@@ -274,11 +307,21 @@
             background-color: transparent !important;
             border: none !important;
             accent-color: #555;
+            margin-right: 6px;
+        }
+
+        input[type="radio"] {
+            appearance: radio !important;
+            -webkit-appearance: radio !important;
+            -moz-appearance: radio !important;
         }
 
         input[type="text"]:focus,
         input[type="url"]:focus,
         input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        select:focus,
         textarea:focus {
             outline: none;
             border-color: #888;
@@ -290,7 +333,7 @@
         }
 
         textarea {
-            min-height: 120px;
+            min-height: 100px;
             resize: vertical;
         }
 
@@ -326,6 +369,20 @@
 
         .btn-secondary:hover {
             background: #eee;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
         }
 
         /* Stats - clean grid */
@@ -380,52 +437,10 @@
             border: 1px solid #e5c8c8;
         }
 
-        /* Content lists */
-        .content-list {
-            list-style: none;
-        }
-
-        .content-item {
-            background: #fff;
-            padding: 16px;
-            margin-bottom: 8px;
-            border: 1px solid #e5e5e5;
-            border-radius: 4px;
-        }
-
-        .content-item h4 {
+        .alert-info {
+            background: #f0f7ff;
             color: #1a1a1a;
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
-
-        .content-item p {
-            color: #666;
-            font-size: 13px;
-        }
-
-        /* SEO scores - muted */
-        .seo-score {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 3px;
-            font-weight: 500;
-            font-size: 12px;
-        }
-
-        .seo-score.high {
-            background: #e8f0e8;
-            color: #2d5a2d;
-        }
-
-        .seo-score.medium {
-            background: #f5f0e0;
-            color: #6b5a2d;
-        }
-
-        .seo-score.low {
-            background: #f5e8e8;
-            color: #6b2d2d;
+            border: 1px solid #c8d8e5;
         }
 
         /* Links */
@@ -445,7 +460,6 @@
             text-decoration-color: #888;
         }
 
-        /* Buttons should not inherit link styles */
         .card a.btn {
             color: #fff;
             text-decoration: none;
@@ -464,15 +478,181 @@
             color: #1a1a1a;
         }
 
-        /* Lists in cards */
-        .card ol, .card ul {
-            margin-left: 20px;
-            color: #444;
-            font-size: 13px;
+        /* Wizard specific */
+        .wizard-progress {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 0 12px;
+            overflow-x: auto;
         }
 
-        .card li {
-            margin-bottom: 8px;
+        .wizard-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            padding: 8px 0;
+            min-width: 70px;
+        }
+
+        .wizard-step::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: -50%;
+            right: 50%;
+            height: 2px;
+            background: #e5e5e5;
+            z-index: 0;
+        }
+
+        .wizard-step:first-child::before {
+            display: none;
+        }
+
+        .wizard-step.completed::before {
+            background: #1a1a1a;
+        }
+
+        .wizard-step-number {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f5f5f5;
+            border: 2px solid #e5e5e5;
+            line-height: 28px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #888;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 4px;
+        }
+
+        .wizard-step.active .wizard-step-number {
+            background: #1a1a1a;
+            border-color: #1a1a1a;
+            color: #fff;
+        }
+
+        .wizard-step.completed .wizard-step-number {
+            background: #fff;
+            border-color: #1a1a1a;
+            color: #1a1a1a;
+        }
+
+        .wizard-step-label {
+            font-size: 10px;
+            color: #888;
+        }
+
+        .wizard-step.active .wizard-step-label {
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        .wizard-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        /* Item lists (contributors, personas) */
+        .item-list {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .item-card {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-card h4 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .item-card p {
+            margin: 4px 0 0 0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Campaign type cards */
+        .type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .type-card {
+            border: 2px solid #e5e5e5;
+            border-radius: 6px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .type-card:hover {
+            border-color: #888;
+        }
+
+        .type-card.selected {
+            border-color: #1a1a1a;
+            background: #fafafa;
+        }
+
+        .type-card input[type="radio"] {
+            display: none;
+        }
+
+        .type-card h4 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+        }
+
+        .type-card p {
+            margin: 0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Campaign badge */
+        .campaign-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .campaign-badge.completed {
+            background: #e8f0e8;
+            color: #2d5a2d;
+        }
+
+        .campaign-badge.draft {
+            background: #fff8e6;
+            color: #8a6d3b;
         }
 
         /* Utility */
@@ -486,45 +666,81 @@
             margin: 24px 0;
         }
 
-        /* Subtle monospace for data */
         code, .mono {
             font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
             font-size: 12px;
+        }
+
+        /* Output sections */
+        .output-section {
+            background: #f9f9f9;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .output-section h4 {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .output-section p, .output-section li {
+            font-size: 13px;
+            color: #1a1a1a;
+        }
+
+        .copy-btn {
+            background: #f5f5f5;
+            border: 1px solid #d0d0d0;
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #666;
+            cursor: pointer;
+            border-radius: 3px;
+            float: right;
+        }
+
+        .copy-btn:hover {
+            background: #eee;
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    {% set current_tool_id = 'settings' if (request.path.startswith('/settings') or request.path.startswith('/account')) else ('utm' if request.path.startswith('/utm') else ('cdj' if request.path.startswith('/cdj') else ('gtm' if request.path.startswith('/gtm') else 'seo'))) %}
     <header>
         <div class="container">
             <div class="site-title">
                 <div class="tool-picker">
                     <button class="tool-picker-btn" onclick="toggleToolPicker(event)">
-                        <span>{% if current_tool_id == 'settings' %}Settings{% elif current_tool_id == 'utm' %}UTM Tool{% elif current_tool_id == 'cdj' %}CDJ Tool{% elif current_tool_id == 'gtm' %}GTM Tool{% else %}SEO Tool{% endif %}</span>
+                        <span>GTM Tool</span>
                         <span class="chevron">▼</span>
                     </button>
                     <div class="tool-picker-menu" id="toolPickerMenu">
                         <div class="tool-picker-label">Tools</div>
-                        <a href="/" class="tool-picker-item {% if current_tool_id == 'seo' %}active{% endif %}">
+                        <a href="/" class="tool-picker-item">
                             <span>SEO Tool</span>
                             <span class="check">✓</span>
                         </a>
-                        <a href="/utm" class="tool-picker-item {% if current_tool_id == 'utm' %}active{% endif %}">
+                        <a href="/utm" class="tool-picker-item">
                             <span>UTM Tool</span>
                             <span class="check">✓</span>
                         </a>
-                        <a href="/cdj" class="tool-picker-item {% if current_tool_id == 'cdj' %}active{% endif %}">
+                        <a href="/cdj" class="tool-picker-item">
                             <span>CDJ Tool</span>
                             <span class="check">✓</span>
                         </a>
-                        <a href="/gtm" class="tool-picker-item {% if current_tool_id == 'gtm' %}active{% endif %}">
+                        <a href="/gtm" class="tool-picker-item active">
                             <span>GTM Tool</span>
                             <span class="check">✓</span>
                         </a>
                         <div class="tool-picker-divider"></div>
                         <div class="tool-picker-label">Account</div>
-                        <a href="/settings" class="tool-picker-item {% if current_tool_id == 'settings' %}active{% endif %}">
+                        <a href="/settings" class="tool-picker-item">
                             <span>Settings</span>
                             <span class="check">✓</span>
                         </a>
@@ -550,20 +766,14 @@
     });
     </script>
 
-    {% if current_tool_id == 'seo' %}
-        <nav>
-            <div class="container">
-                <ul>
-                    <li><a href="/">Overview</a></li>
-                    <li><a href="/scrape">Scrape</a></li>
-                    <li><a href="/scraped-content">Scraped Content</a></li>
-                    <li><a href="/generate">Generate</a></li>
-                    <li><a href="/generated-content">Generated Content</a></li>
-                    <li><a href="/analyze">Analyze</a></li>
-                </ul>
-            </div>
-        </nav>
-    {% endif %}
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="/gtm" class="{% if request.path == '/gtm' or request.path == '/gtm/' %}active{% endif %}">Overview</a></li>
+                <li><a href="/gtm/campaigns" class="{% if request.path.startswith('/gtm/campaign') %}active{% endif %}">Campaigns</a></li>
+            </ul>
+        </div>
+    </nav>
 
     <main>
         <div class="container">
@@ -574,3 +784,4 @@
     {% block extra_js %}{% endblock %}
 </body>
 </html>
+

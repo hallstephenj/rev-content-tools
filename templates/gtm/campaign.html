@@ -1,0 +1,238 @@
+{% extends "gtm/base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+        <h1 style="font-size: 20px; font-weight: 600; margin: 0;">{{ campaign.primary_title or campaign.internal_campaign_name or 'Campaign' }}</h1>
+        <p style="color: #666; font-size: 13px; margin: 4px 0 0 0;">
+            <span class="campaign-badge {% if campaign.wizard_completed %}completed{% else %}draft{% endif %}">
+                {% if campaign.wizard_completed %}Completed{% else %}Draft{% endif %}
+            </span>
+            {% if campaign.campaign_type %}
+            <span class="campaign-badge">{{ campaign.campaign_type|replace('_', ' ')|title }}</span>
+            {% endif %}
+            {% if campaign.primary_goal %}
+            <span class="campaign-badge">{{ campaign.primary_goal|replace('_', ' ')|title }}</span>
+            {% endif %}
+        </p>
+    </div>
+    <div>
+        <a href="/gtm/wizard/{{ campaign.id }}/1" class="btn btn-secondary btn-small">Edit</a>
+        <form method="POST" action="/gtm/campaign/{{ campaign.id }}/delete" style="display: inline;" onsubmit="return confirm('Delete this campaign?');">
+            <button type="submit" class="btn btn-small btn-danger">Delete</button>
+        </form>
+    </div>
+</div>
+
+<!-- Campaign Brief -->
+<div class="card">
+    <h2>Campaign Brief</h2>
+    
+    {% if campaign.subtitle %}
+    <p style="font-size: 15px; color: #444; margin-bottom: 16px;">
+        {{ campaign.subtitle }}
+    </p>
+    {% endif %}
+
+    {% if campaign.overview_paragraph_1 or campaign.overview_paragraph_2 %}
+    <div class="output-section">
+        <h4>Overview</h4>
+        {% if campaign.overview_paragraph_1 %}
+        <p style="margin-bottom: 12px;">{{ campaign.overview_paragraph_1 }}</p>
+        {% endif %}
+        {% if campaign.overview_paragraph_2 %}
+        <p>{{ campaign.overview_paragraph_2 }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if campaign.internal_campaign_name %}
+    <div class="output-section">
+        <h4>Internal Tracking</h4>
+        <p><strong>Campaign Name:</strong> {{ campaign.internal_campaign_name }}</p>
+        {% if campaign.campaign_code %}
+        <p><strong>Campaign Code:</strong> {{ campaign.campaign_code }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if campaign.event_date %}
+    <div class="output-section">
+        <h4>Logistics</h4>
+        <p>
+            <strong>Date:</strong> {{ campaign.event_date }}
+            {% if campaign.event_time %} at {{ campaign.event_time }}{% endif %}
+            {% if campaign.event_timezone %} ({{ campaign.event_timezone }}){% endif %}
+        </p>
+        {% if campaign.event_duration %}
+        <p><strong>Duration:</strong> {{ campaign.event_duration }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Key Messages -->
+{% if campaign.key_message_relevance or campaign.key_message_why_now or campaign.key_message_takeaway or campaign.key_message_questions %}
+<div class="card">
+    <h2>Key Messages</h2>
+    
+    {% if campaign.key_message_relevance %}
+    <div class="output-section">
+        <h4>What's Happening Now</h4>
+        <p>{{ campaign.key_message_relevance }}</p>
+    </div>
+    {% endif %}
+
+    {% if campaign.key_message_why_now %}
+    <div class="output-section">
+        <h4>Why It Matters Now</h4>
+        <p>{{ campaign.key_message_why_now }}</p>
+    </div>
+    {% endif %}
+
+    {% if campaign.key_message_takeaway %}
+    <div class="output-section">
+        <h4>Key Takeaway</h4>
+        <p>{{ campaign.key_message_takeaway }}</p>
+    </div>
+    {% endif %}
+
+    {% if campaign.key_message_questions %}
+    <div class="output-section">
+        <h4>Questions Answered</h4>
+        <p>{{ campaign.key_message_questions }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Contributors -->
+{% if contributors %}
+<div class="card">
+    <h2>Contributors</h2>
+    <ul class="item-list" style="margin-top: 16px; margin-bottom: 0;">
+        {% for contributor in contributors %}
+        <li class="item-card" style="margin-bottom: {% if loop.last %}0{% else %}12{% endif %}px;">
+            <div>
+                <h4>{{ contributor.name }}</h4>
+                <p>
+                    {% if contributor.title %}{{ contributor.title }}{% endif %}
+                    {% if contributor.organization %} · {{ contributor.organization }}{% endif %}
+                    {% if contributor.role %} · <span class="campaign-badge">{{ contributor.role|title }}</span>{% endif %}
+                </p>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- Personas -->
+{% if personas %}
+<div class="card">
+    <h2>Audience Personas</h2>
+    {% for persona in personas %}
+    <div class="output-section" style="margin-top: 16px;">
+        <h4>{{ persona.persona_name }}</h4>
+        {% if persona.core_pain %}
+        <p><strong>Core Pain:</strong> {{ persona.core_pain }}</p>
+        {% endif %}
+        {% if persona.messaging_angle %}
+        <p><strong>Messaging Angle:</strong> {{ persona.messaging_angle }}</p>
+        {% endif %}
+        {% if persona.objection_to_address %}
+        <p><strong>Objection to Address:</strong> {{ persona.objection_to_address }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Distribution -->
+{% if campaign.channels_owned or campaign.channels_earned or campaign.channels_paid %}
+<div class="card">
+    <h2>Distribution Channels</h2>
+    
+    {% if campaign.channels_owned %}
+    <div class="output-section">
+        <h4>Owned Channels</h4>
+        <p>{{ campaign.channels_owned }}</p>
+    </div>
+    {% endif %}
+
+    {% if campaign.channels_earned %}
+    <div class="output-section">
+        <h4>Earned Channels</h4>
+        <p>{{ campaign.channels_earned }}</p>
+    </div>
+    {% endif %}
+
+    {% if campaign.channels_paid %}
+    <div class="output-section">
+        <h4>Paid Channels</h4>
+        <p>{{ campaign.channels_paid }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- CTAs -->
+{% if campaign.primary_cta %}
+<div class="card">
+    <h2>Calls to Action</h2>
+    
+    <div class="output-section">
+        <h4>Primary CTA</h4>
+        <p style="font-size: 16px; font-weight: 500;">{{ campaign.primary_cta }}</p>
+    </div>
+
+    {% if campaign.secondary_cta %}
+    <div class="output-section">
+        <h4>Secondary CTA</h4>
+        <p>{{ campaign.secondary_cta }}</p>
+    </div>
+    {% endif %}
+
+    {% if campaign.post_conversion_step %}
+    <div class="output-section">
+        <h4>Post-Conversion Journey</h4>
+        <p>{{ campaign.post_conversion_step }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- AI Prompt (for repurposing) -->
+<div class="card">
+    <h2>AI Repurposing Prompt</h2>
+    <p style="margin-bottom: 16px; color: #666;">
+        Copy this prompt to generate emails, landing pages, social posts, and sales enablement materials.
+    </p>
+    <div class="output-section" style="background: #1a1a1a; color: #fff; font-family: monospace; font-size: 12px; white-space: pre-wrap;">You are helping repurpose a marketing campaign. Here are the details:
+
+**Campaign Type:** {{ campaign.campaign_type|replace('_', ' ')|title }}
+**Primary Goal:** {{ campaign.primary_goal|replace('_', ' ')|title }}
+**Title:** {{ campaign.primary_title }}
+{% if campaign.subtitle %}**Subtitle:** {{ campaign.subtitle }}{% endif %}
+
+**Overview:**
+{{ campaign.overview_paragraph_1 }}
+
+{{ campaign.overview_paragraph_2 }}
+
+**Key Messages:**
+- Relevance: {{ campaign.key_message_relevance }}
+- Why Now: {{ campaign.key_message_why_now }}
+- Takeaway: {{ campaign.key_message_takeaway }}
+- Questions Answered: {{ campaign.key_message_questions }}
+
+{% if personas %}**Target Personas:**
+{% for persona in personas %}- {{ persona.persona_name }}: {{ persona.core_pain }}
+{% endfor %}{% endif %}
+
+**Primary CTA:** {{ campaign.primary_cta }}
+
+Please generate [SPECIFY: email sequence / landing page copy / social posts / sales one-pager] for this campaign.</div>
+</div>
+{% endblock %}
+

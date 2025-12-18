@@ -1,0 +1,597 @@
+{% extends "gtm/base.html" %}
+
+{% block content %}
+<div class="wizard-progress">
+    <div class="wizard-step {% if step >= 1 %}completed{% endif %} {% if step == 1 %}active{% endif %}">
+        <div class="wizard-step-number">1</div>
+        <div class="wizard-step-label">Type</div>
+    </div>
+    <div class="wizard-step {% if step >= 2 %}completed{% endif %} {% if step == 2 %}active{% endif %}">
+        <div class="wizard-step-number">2</div>
+        <div class="wizard-step-label">Title</div>
+    </div>
+    <div class="wizard-step {% if step >= 3 %}completed{% endif %} {% if step == 3 %}active{% endif %}">
+        <div class="wizard-step-number">3</div>
+        <div class="wizard-step-label">Subtitle</div>
+    </div>
+    <div class="wizard-step {% if step >= 4 %}completed{% endif %} {% if step == 4 %}active{% endif %}">
+        <div class="wizard-step-number">4</div>
+        <div class="wizard-step-label">Name</div>
+    </div>
+    <div class="wizard-step {% if step >= 5 %}completed{% endif %} {% if step == 5 %}active{% endif %}">
+        <div class="wizard-step-number">5</div>
+        <div class="wizard-step-label">Team</div>
+    </div>
+    <div class="wizard-step {% if step >= 6 %}completed{% endif %} {% if step == 6 %}active{% endif %}">
+        <div class="wizard-step-number">6</div>
+        <div class="wizard-step-label">Overview</div>
+    </div>
+    <div class="wizard-step {% if step >= 7 %}completed{% endif %} {% if step == 7 %}active{% endif %}">
+        <div class="wizard-step-number">7</div>
+        <div class="wizard-step-label">Logistics</div>
+    </div>
+    <div class="wizard-step {% if step >= 8 %}completed{% endif %} {% if step == 8 %}active{% endif %}">
+        <div class="wizard-step-number">8</div>
+        <div class="wizard-step-label">Messages</div>
+    </div>
+    <div class="wizard-step {% if step >= 9 %}completed{% endif %} {% if step == 9 %}active{% endif %}">
+        <div class="wizard-step-number">9</div>
+        <div class="wizard-step-label">Channels</div>
+    </div>
+    <div class="wizard-step {% if step >= 10 %}completed{% endif %} {% if step == 10 %}active{% endif %}">
+        <div class="wizard-step-number">10</div>
+        <div class="wizard-step-label">Personas</div>
+    </div>
+    <div class="wizard-step {% if step >= 11 %}completed{% endif %} {% if step == 11 %}active{% endif %}">
+        <div class="wizard-step-number">11</div>
+        <div class="wizard-step-label">CTAs</div>
+    </div>
+</div>
+
+<div class="card">
+    {% if step == 1 %}
+    <!-- Step 1: Campaign Type & Intent -->
+    <h2>Step 1: Campaign Type & Intent</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Define the format and primary goal of your campaign.
+    </p>
+
+    <form method="POST" action="/gtm/wizard/{{ campaign.id }}/1">
+        <div class="form-group">
+            <label>Campaign Type</label>
+            <div class="type-grid">
+                <label class="type-card {% if campaign.campaign_type == 'report' %}selected{% endif %}">
+                    <input type="radio" name="campaign_type" value="report" {% if campaign.campaign_type == 'report' %}checked{% endif %} onchange="this.closest('.type-card').classList.add('selected'); document.querySelectorAll('.type-card').forEach(c => { if(c !== this.closest('.type-card')) c.classList.remove('selected'); });">
+                    <h4>Report / Research</h4>
+                    <p>PDF, whitepaper, benchmark study</p>
+                </label>
+                <label class="type-card {% if campaign.campaign_type == 'webinar' %}selected{% endif %}">
+                    <input type="radio" name="campaign_type" value="webinar" {% if campaign.campaign_type == 'webinar' %}checked{% endif %} onchange="this.closest('.type-card').classList.add('selected'); document.querySelectorAll('.type-card').forEach(c => { if(c !== this.closest('.type-card')) c.classList.remove('selected'); });">
+                    <h4>Webinar / Live Event</h4>
+                    <p>Virtual event, workshop, panel</p>
+                </label>
+                <label class="type-card {% if campaign.campaign_type == 'tool' %}selected{% endif %}">
+                    <input type="radio" name="campaign_type" value="tool" {% if campaign.campaign_type == 'tool' %}checked{% endif %} onchange="this.closest('.type-card').classList.add('selected'); document.querySelectorAll('.type-card').forEach(c => { if(c !== this.closest('.type-card')) c.classList.remove('selected'); });">
+                    <h4>Interactive Tool</h4>
+                    <p>Calculator, assessment, quiz</p>
+                </label>
+                <label class="type-card {% if campaign.campaign_type == 'video' %}selected{% endif %}">
+                    <input type="radio" name="campaign_type" value="video" {% if campaign.campaign_type == 'video' %}checked{% endif %} onchange="this.closest('.type-card').classList.add('selected'); document.querySelectorAll('.type-card').forEach(c => { if(c !== this.closest('.type-card')) c.classList.remove('selected'); });">
+                    <h4>Video Series</h4>
+                    <p>Documentary, tutorial series, flagship content</p>
+                </label>
+                <label class="type-card {% if campaign.campaign_type == 'launch' %}selected{% endif %}">
+                    <input type="radio" name="campaign_type" value="launch" {% if campaign.campaign_type == 'launch' %}checked{% endif %} onchange="this.closest('.type-card').classList.add('selected'); document.querySelectorAll('.type-card').forEach(c => { if(c !== this.closest('.type-card')) c.classList.remove('selected'); });">
+                    <h4>Product Launch</h4>
+                    <p>Feature release, new product announcement</p>
+                </label>
+                <label class="type-card {% if campaign.campaign_type == 'other' %}selected{% endif %}">
+                    <input type="radio" name="campaign_type" value="other" {% if campaign.campaign_type == 'other' %}checked{% endif %} onchange="this.closest('.type-card').classList.add('selected'); document.querySelectorAll('.type-card').forEach(c => { if(c !== this.closest('.type-card')) c.classList.remove('selected'); });">
+                    <h4>Other</h4>
+                    <p>Custom campaign type</p>
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Primary Goal</label>
+            <select name="primary_goal" required>
+                <option value="">Select primary goal...</option>
+                <option value="lead_gen" {% if campaign.primary_goal == 'lead_gen' %}selected{% endif %}>Lead Generation</option>
+                <option value="pipeline" {% if campaign.primary_goal == 'pipeline' %}selected{% endif %}>Pipeline Acceleration</option>
+                <option value="education" {% if campaign.primary_goal == 'education' %}selected{% endif %}>Education / Enablement</option>
+                <option value="activation" {% if campaign.primary_goal == 'activation' %}selected{% endif %}>Activation / Engagement</option>
+                <option value="authority" {% if campaign.primary_goal == 'authority' %}selected{% endif %}>Authority / Thought Leadership</option>
+            </select>
+            <ul class="tip-list">
+                <li>Pick the format that matches how your audience prefers to learn</li>
+                <li>One primary goal keeps the campaign focused</li>
+                <li>Secondary goals can emerge later</li>
+            </ul>
+        </div>
+
+        <div class="wizard-buttons">
+            <a href="/gtm" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn">Continue</button>
+        </div>
+    </form>
+
+    {% elif step == 2 %}
+    <!-- Step 2: Content Title -->
+    <h2>Step 2: Content Title</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Craft a clear, compelling title for your campaign content.
+    </p>
+
+    <form method="POST" action="/gtm/wizard/{{ campaign.id }}/2">
+        <div class="form-group">
+            <label>Primary Title</label>
+            <input type="text" name="primary_title" value="{{ campaign.primary_title or '' }}" placeholder="e.g., The 2024 State of Content Marketing" required>
+            <ul class="tip-list">
+                <li>Clear beats clever</li>
+                <li>Promise insight, not marketing</li>
+                <li>Titles should survive copy-paste into email subject lines</li>
+            </ul>
+        </div>
+
+        <div class="form-group">
+            <label>Working / Internal Title <span style="color: #888; font-weight: 400;">(optional)</span></label>
+            <input type="text" name="working_title" value="{{ campaign.working_title or '' }}" placeholder="e.g., Q4 Content Report">
+            <div class="label-tip">Used for internal reference if different from the public title</div>
+        </div>
+
+        <div class="wizard-buttons">
+            <a href="/gtm/wizard/{{ campaign.id }}/1" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn">Continue</button>
+        </div>
+    </form>
+
+    {% elif step == 3 %}
+    <!-- Step 3: Content Subtitle -->
+    <h2>Step 3: Content Subtitle</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Add a descriptor that narrows the promise and clarifies the value.
+    </p>
+
+    <form method="POST" action="/gtm/wizard/{{ campaign.id }}/3">
+        <div class="form-group">
+            <label>Subtitle or Descriptor <span style="color: #888; font-weight: 400;">(optional)</span></label>
+            <input type="text" name="subtitle" value="{{ campaign.subtitle or '' }}" placeholder="e.g., Key insights from 500+ marketing leaders on AI adoption">
+            <ul class="tip-list">
+                <li>Use this to narrow the promise</li>
+                <li>Good subtitles reduce bounce and confusion</li>
+                <li>Think "who this is for" and "why now"</li>
+            </ul>
+        </div>
+
+        <div class="wizard-buttons">
+            <a href="/gtm/wizard/{{ campaign.id }}/2" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn">Continue</button>
+        </div>
+    </form>
+
+    {% elif step == 4 %}
+    <!-- Step 4: Formal Campaign Name -->
+    <h2>Step 4: Formal Campaign Name</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Define the internal campaign name for HubSpot, Salesforce, GA, and tracking.
+    </p>
+
+    <form method="POST" action="/gtm/wizard/{{ campaign.id }}/4">
+        <div class="form-group">
+            <label>Internal Campaign Name</label>
+            <input type="text" name="internal_campaign_name" value="{{ campaign.internal_campaign_name or '' }}" placeholder="e.g., 2024-Q4-Content-Report" required>
+            <ul class="tip-list">
+                <li>Consistency prevents reporting chaos</li>
+                <li>Names should work outside of marketing</li>
+                <li>Avoid clever names only insiders understand</li>
+            </ul>
+        </div>
+
+        <div class="form-group">
+            <label>Campaign Code / Short Name <span style="color: #888; font-weight: 400;">(optional)</span></label>
+            <input type="text" name="campaign_code" value="{{ campaign.campaign_code or '' }}" placeholder="e.g., CM24Q4">
+            <div class="label-tip">Used for UTM tracking and quick reference</div>
+        </div>
+
+        <div class="wizard-buttons">
+            <a href="/gtm/wizard/{{ campaign.id }}/3" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn">Continue</button>
+        </div>
+    </form>
+
+    {% elif step == 5 %}
+    <!-- Step 5: Contributors / Guests -->
+    <h2>Step 5: Contributors / Guests</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Add the people who will be featured in or contribute to this campaign.
+    </p>
+
+    {% if contributors %}
+    <ul class="item-list">
+        {% for contributor in contributors %}
+        <li class="item-card">
+            <div>
+                <h4>{{ contributor.name }}</h4>
+                <p>
+                    {% if contributor.title %}{{ contributor.title }}{% endif %}
+                    {% if contributor.organization %} · {{ contributor.organization }}{% endif %}
+                    {% if contributor.role %} · <span class="campaign-badge">{{ contributor.role|title }}</span>{% endif %}
+                </p>
+            </div>
+            <div class="item-actions">
+                <form method="POST" action="/gtm/wizard/{{ campaign.id }}/5/delete/{{ contributor.id }}" style="display: inline;">
+                    <button type="submit" class="btn btn-small btn-danger">Remove</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <form method="POST" action="/gtm/wizard/{{ campaign.id }}/5" style="margin-bottom: 16px;">
+        <input type="hidden" name="action" value="add">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="name" placeholder="e.g., Jane Smith" required>
+            </div>
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="title" placeholder="e.g., VP of Marketing">
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+                <label>Organization</label>
+                <input type="text" name="organization" placeholder="e.g., Acme Corp">
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select name="role">
+                    <option value="">Select role...</option>
+                    <option value="host">Host</option>
+                    <option value="guest">Guest</option>
+                    <option value="expert">Expert</option>
+                    <option value="moderator">Moderator</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-secondary">Add Contributor</button>
+    </form>
+
+    <ul class="tip-list" style="margin-bottom: 20px;">
+        <li>Credibility compounds distribution</li>
+        <li>Guest audiences are distribution channels</li>
+        <li>Titles matter more than bios</li>
+    </ul>
+
+    <div class="wizard-buttons">
+        <a href="/gtm/wizard/{{ campaign.id }}/4" class="btn btn-secondary">Back</a>
+        <form method="POST" action="/gtm/wizard/{{ campaign.id }}/5" style="display: inline;">
+            <input type="hidden" name="action" value="continue">
+            <button type="submit" class="btn">Continue</button>
+        </form>
+    </div>
+
+    {% elif step == 6 %}
+    <!-- Step 6: Campaign Overview -->
+    <h2>Step 6: Campaign Overview</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Write a two-paragraph overview that becomes your source of truth copy.
+    </p>
+
+    <form method="POST" action="/gtm/wizard/{{ campaign.id }}/6">
+        <div class="form-group">
+            <label>Paragraph 1: Context + Problem</label>
+            <div class="label-tip">What's the current state? What tension or challenge exists?</div>
+            <textarea name="overview_paragraph_1" rows="4" placeholder="e.g., Marketing teams are drowning in content demands while budgets shrink. The pressure to prove ROI has never been higher, yet most teams lack the data to make informed decisions about where to invest their limited resources.">{{ campaign.overview_paragraph_1 or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Paragraph 2: What This Delivers</label>
+            <div class="label-tip">What will they get? How will it help?</div>
+            <textarea name="overview_paragraph_2" rows="4" placeholder="e.g., This report provides a data-driven framework for prioritizing content investments. Based on insights from 500+ marketing leaders, you'll learn which content types drive the highest ROI and how to build a sustainable content strategy.">{{ campaign.overview_paragraph_2 or '' }}</textarea>
+        </div>
+
+        <ul class="tip-list">
+            <li>Write like a smart human, not a landing page</li>
+            <li>Start with the tension, not the solution</li>
+            <li>This becomes your source of truth copy</li>
+        </ul>
+
+        <div class="wizard-buttons">
+            <a href="/gtm/wizard/{{ campaign.id }}/5" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn">Continue</button>
+        </div>
+    </form>
+
+    {% elif step == 7 %}
+    <!-- Step 7: Logistics -->
+    <h2>Step 7: Logistics</h2>
+    {% if campaign.campaign_type in ['webinar', 'launch'] %}
+    <p style="margin-bottom: 20px; color: #666;">
+        Define the timing and duration for your {{ campaign.campaign_type|replace('_', ' ') }}.
+    </p>
+
+    <form method="POST" action="/gtm/wizard/{{ campaign.id }}/7">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="event_date" value="{{ campaign.event_date or '' }}">
+            </div>
+            <div class="form-group">
+                <label>Time</label>
+                <input type="time" name="event_time" value="{{ campaign.event_time or '' }}">
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+                <label>Time Zone</label>
+                <select name="event_timezone">
+                    <option value="">Select timezone...</option>
+                    <option value="ET" {% if campaign.event_timezone == 'ET' %}selected{% endif %}>Eastern Time (ET)</option>
+                    <option value="CT" {% if campaign.event_timezone == 'CT' %}selected{% endif %}>Central Time (CT)</option>
+                    <option value="MT" {% if campaign.event_timezone == 'MT' %}selected{% endif %}>Mountain Time (MT)</option>
+                    <option value="PT" {% if campaign.event_timezone == 'PT' %}selected{% endif %}>Pacific Time (PT)</option>
+                    <option value="UTC" {% if campaign.event_timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                    <option value="GMT" {% if campaign.event_timezone == 'GMT' %}selected{% endif %}>GMT</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Duration</label>
+                <select name="event_duration">
+                    <option value="">Select duration...</option>
+                    <option value="30 minutes" {% if campaign.event_duration == '30 minutes' %}selected{% endif %}>30 minutes</option>
+                    <option value="45 minutes" {% if campaign.event_duration == '45 minutes' %}selected{% endif %}>45 minutes</option>
+                    <option value="1 hour" {% if campaign.event_duration == '1 hour' %}selected{% endif %}>1 hour</option>
+                    <option value="90 minutes" {% if campaign.event_duration == '90 minutes' %}selected{% endif %}>90 minutes</option>
+                    <option value="2 hours" {% if campaign.event_duration == '2 hours' %}selected{% endif %}>2 hours</option>
+                </select>
+            </div>
+        </div>
+
+        <ul class="tip-list">
+            <li>Time zones kill conversion if unclear</li>
+            <li>Shorter events outperform longer ones</li>
+            <li>Calendar clarity increases attendance</li>
+        </ul>
+
+        <div class="wizard-buttons">
+            <a href="/gtm/wizard/{{ campaign.id }}/6" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn">Continue</button>
+        </div>
+    </form>
+    {% else %}
+    <p style="margin-bottom: 20px; color: #666;">
+        Logistics are optional for {{ campaign.campaign_type|replace('_', ' ')|title }} campaigns. You can skip this step or add timing details if applicable.
+    </p>
+
+    <form method="POST" action="/gtm/wizard/{{ campaign.id }}/7">
+        <div class="form-group">
+            <label>Launch Date <span style="color: #888; font-weight: 400;">(optional)</span></label>
+            <input type="date" name="event_date" value="{{ campaign.event_date or '' }}">
+        </div>
+
+        <div class="wizard-buttons">
+            <a href="/gtm/wizard/{{ campaign.id }}/6" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn">Continue</button>
+        </div>
+    </form>
+    {% endif %}
+
+    {% elif step == 8 %}
+    <!-- Step 8: Key Messages -->
+    <h2>Step 8: Key Messages</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Define the core messages that will anchor all campaign communications.
+    </p>
+
+    <form method="POST" action="/gtm/wizard/{{ campaign.id }}/8">
+        <div class="form-group">
+            <label>What's happening right now that makes this relevant?</label>
+            <textarea name="key_message_relevance" rows="3" placeholder="e.g., AI is fundamentally changing how content teams operate, but most organizations are struggling to adapt.">{{ campaign.key_message_relevance or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Why does this matter now?</label>
+            <textarea name="key_message_why_now" rows="3" placeholder="e.g., Teams that don't adapt in the next 12 months will fall irreversibly behind their competitors.">{{ campaign.key_message_why_now or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>What will someone walk away with?</label>
+            <textarea name="key_message_takeaway" rows="3" placeholder="e.g., A practical framework for integrating AI into your content workflow without losing your brand voice.">{{ campaign.key_message_takeaway or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>What questions will this answer?</label>
+            <textarea name="key_message_questions" rows="3" placeholder="e.g., How do I know which AI tools are worth the investment? What content should I still create manually?">{{ campaign.key_message_questions or '' }}</textarea>
+        </div>
+
+        <ul class="tip-list">
+            <li>Relevance is temporal, not theoretical</li>
+            <li>Outcomes matter more than features</li>
+            <li>Questions beat claims</li>
+        </ul>
+
+        <div class="wizard-buttons">
+            <a href="/gtm/wizard/{{ campaign.id }}/7" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn">Continue</button>
+        </div>
+    </form>
+
+    {% elif step == 9 %}
+    <!-- Step 9: Distribution Channels -->
+    <h2>Step 9: Distribution Channels</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Plan how you'll get this campaign in front of your audience.
+    </p>
+
+    <form method="POST" action="/gtm/wizard/{{ campaign.id }}/9">
+        <div class="form-group">
+            <label>Owned Channels</label>
+            <div class="label-tip">Channels you control directly</div>
+            <textarea name="channels_owned" rows="3" placeholder="e.g., Email newsletter, company blog, product in-app, LinkedIn company page">{{ campaign.channels_owned or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Earned Channels</label>
+            <div class="label-tip">Partners, guests, and community distribution</div>
+            <textarea name="channels_earned" rows="3" placeholder="e.g., Guest speaker's newsletter, partner co-promotion, industry Slack communities">{{ campaign.channels_earned or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Paid Channels <span style="color: #888; font-weight: 400;">(optional)</span></label>
+            <div class="label-tip">Paid promotion and advertising</div>
+            <textarea name="channels_paid" rows="3" placeholder="e.g., LinkedIn Ads, Google Ads, sponsored newsletter">{{ campaign.channels_paid or '' }}</textarea>
+        </div>
+
+        <ul class="tip-list">
+            <li>Distribution should be planned before launch</li>
+            <li>Each channel needs a reason to exist</li>
+            <li>"We'll post it everywhere" is not a strategy</li>
+        </ul>
+
+        <div class="wizard-buttons">
+            <a href="/gtm/wizard/{{ campaign.id }}/8" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn">Continue</button>
+        </div>
+    </form>
+
+    {% elif step == 10 %}
+    <!-- Step 10: Audience Personas -->
+    <h2>Step 10: Audience Personas</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Define up to 3 target personas for this campaign.
+    </p>
+
+    {% if cdj_segments %}
+    <div class="alert alert-info" style="margin-bottom: 20px;">
+        <strong>Tip:</strong> You have {{ cdj_segments|length }} segment(s) defined in your CDJ Tool. 
+        You can use these as a starting point for your personas.
+    </div>
+    {% elif not cdj_segments %}
+    <div class="alert alert-info" style="margin-bottom: 20px;">
+        <strong>Tip:</strong> Want to define detailed customer segments? 
+        <a href="/cdj" style="color: #1a1a1a;">Visit the CDJ Tool</a> to create audience profiles you can reference here.
+        <br><small style="color: #666;">You can continue without CDJ data.</small>
+    </div>
+    {% endif %}
+
+    {% if personas %}
+    <ul class="item-list">
+        {% for persona in personas %}
+        <li class="item-card">
+            <div>
+                <h4>{{ persona.persona_name }}</h4>
+                <p>{{ persona.core_pain[:80] }}{% if persona.core_pain|length > 80 %}...{% endif %}</p>
+            </div>
+            <div class="item-actions">
+                <form method="POST" action="/gtm/wizard/{{ campaign.id }}/10/delete/{{ persona.id }}" style="display: inline;">
+                    <button type="submit" class="btn btn-small btn-danger">Remove</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if personas|length < 3 %}
+    <form method="POST" action="/gtm/wizard/{{ campaign.id }}/10" style="margin-bottom: 16px;">
+        <input type="hidden" name="action" value="add">
+        
+        {% if cdj_segments %}
+        <div class="form-group">
+            <label>Start from CDJ Segment <span style="color: #888; font-weight: 400;">(optional)</span></label>
+            <select name="cdj_segment_id" onchange="if(this.value) { document.getElementById('persona_name').value = this.options[this.selectedIndex].text; }">
+                <option value="">Create new persona...</option>
+                {% for segment in cdj_segments %}
+                <option value="{{ segment.id }}">{{ segment.segment_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label>Persona Name</label>
+            <input type="text" name="persona_name" id="persona_name" placeholder="e.g., Marketing Director at Mid-Size SaaS" required>
+        </div>
+
+        <div class="form-group">
+            <label>Core Pain or Tension</label>
+            <textarea name="core_pain" rows="2" placeholder="What keeps them up at night related to this topic?"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Messaging Angle That Will Resonate</label>
+            <textarea name="messaging_angle" rows="2" placeholder="How should we frame this to speak to them?"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Objection or Skepticism to Address</label>
+            <textarea name="objection_to_address" rows="2" placeholder="What will make them hesitate or dismiss this?"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-secondary">Add Persona</button>
+    </form>
+    {% else %}
+    <p style="color: #666; font-size: 13px; margin-bottom: 16px;">
+        Maximum of 3 personas reached. Remove one to add another.
+    </p>
+    {% endif %}
+
+    <ul class="tip-list" style="margin-bottom: 20px;">
+        <li>Speak to one person at a time</li>
+        <li>Objections are gifts, not problems</li>
+        <li>Resonance beats reach</li>
+    </ul>
+
+    <div class="wizard-buttons">
+        <a href="/gtm/wizard/{{ campaign.id }}/9" class="btn btn-secondary">Back</a>
+        <form method="POST" action="/gtm/wizard/{{ campaign.id }}/10" style="display: inline;">
+            <input type="hidden" name="action" value="continue">
+            <button type="submit" class="btn">Continue</button>
+        </form>
+    </div>
+
+    {% elif step == 11 %}
+    <!-- Step 11: Calls to Action -->
+    <h2>Step 11: Calls to Action</h2>
+    <p style="margin-bottom: 20px; color: #666;">
+        Define clear next steps for your audience.
+    </p>
+
+    <form method="POST" action="/gtm/wizard/{{ campaign.id }}/11">
+        <div class="form-group">
+            <label>Primary CTA</label>
+            <input type="text" name="primary_cta" value="{{ campaign.primary_cta or '' }}" placeholder="e.g., Download the Report" required>
+            <div class="label-tip">The main action you want people to take</div>
+        </div>
+
+        <div class="form-group">
+            <label>Secondary CTA <span style="color: #888; font-weight: 400;">(optional)</span></label>
+            <input type="text" name="secondary_cta" value="{{ campaign.secondary_cta or '' }}" placeholder="e.g., Share with a colleague">
+            <div class="label-tip">An alternative action for those not ready for the primary CTA</div>
+        </div>
+
+        <div class="form-group">
+            <label>Post-Conversion Next Step</label>
+            <textarea name="post_conversion_step" rows="3" placeholder="e.g., After downloading, users receive a 3-email nurture sequence inviting them to a live Q&A session.">{{ campaign.post_conversion_step or '' }}</textarea>
+            <div class="label-tip">What happens after someone converts?</div>
+        </div>
+
+        <ul class="tip-list">
+            <li>One clear next step increases conversion</li>
+            <li>CTAs should feel like help, not pressure</li>
+            <li>The campaign isn't over at conversion</li>
+        </ul>
+
+        <div class="wizard-buttons">
+            <a href="/gtm/wizard/{{ campaign.id }}/10" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn">Complete Campaign</button>
+        </div>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}
+

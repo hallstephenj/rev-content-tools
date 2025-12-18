@@ -1,0 +1,98 @@
+{% extends "gtm/base.html" %}
+
+{% block content %}
+<div class="stats">
+    <div class="stat-card">
+        <h3>{{ campaigns|length if campaigns else 0 }}</h3>
+        <p>Total Campaigns</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ completed_count }}</h3>
+        <p>Completed</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ draft_count }}</h3>
+        <p>Drafts</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Go-To-Market Campaign Wizard</h2>
+    <p style="margin-bottom: 20px;">
+        Build structured, strategic GTM campaigns step by step. Each campaign generates ready-to-use briefs, messaging blocks, and distribution plans.
+    </p>
+
+    <a href="/gtm/wizard/new" class="btn">Start New Campaign</a>
+</div>
+
+{% if draft_campaign %}
+<div class="card">
+    <h2>Continue Draft</h2>
+    <p style="margin-bottom: 16px;">
+        You have an incomplete campaign in progress.
+    </p>
+    <div class="item-card" style="margin-bottom: 0;">
+        <div>
+            <h4>{{ draft_campaign.primary_title or draft_campaign.internal_campaign_name or 'Untitled Campaign' }}</h4>
+            <p>
+                <span class="campaign-badge draft">Draft</span>
+                {% if draft_campaign.campaign_type %}
+                <span class="campaign-badge">{{ draft_campaign.campaign_type|replace('_', ' ')|title }}</span>
+                {% endif %}
+                · Step {{ draft_campaign.current_step }} of 11
+            </p>
+        </div>
+        <div class="item-actions">
+            <a href="/gtm/wizard/{{ draft_campaign.id }}/{{ draft_campaign.current_step }}" class="btn btn-small">Continue</a>
+            <form method="POST" action="/gtm/campaign/{{ draft_campaign.id }}/delete" style="display: inline;" onsubmit="return confirm('Delete this draft?');">
+                <button type="submit" class="btn btn-small btn-danger">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if completed_campaigns %}
+<div class="card">
+    <h2>Completed Campaigns</h2>
+    <ul class="item-list" style="margin-top: 16px;">
+        {% for campaign in completed_campaigns[:5] %}
+        <li class="item-card">
+            <div>
+                <h4>{{ campaign.primary_title or campaign.internal_campaign_name or 'Untitled' }}</h4>
+                <p>
+                    <span class="campaign-badge completed">Completed</span>
+                    {% if campaign.campaign_type %}
+                    <span class="campaign-badge">{{ campaign.campaign_type|replace('_', ' ')|title }}</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="item-actions">
+                <a href="/gtm/campaign/{{ campaign.id }}" class="btn btn-small btn-secondary">View</a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% if completed_campaigns|length > 5 %}
+    <a href="/gtm/campaigns">View all campaigns →</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if not campaigns and not draft_campaign %}
+<div class="card">
+    <h2>Getting Started</h2>
+    <p style="margin-bottom: 16px;">
+        The GTM Wizard guides you through creating comprehensive campaign plans. Each wizard generates:
+    </p>
+    <ul style="margin-left: 20px; color: #666; font-size: 13px;">
+        <li style="margin-bottom: 8px;">Campaign brief (single canonical document)</li>
+        <li style="margin-bottom: 8px;">Channel-ready messaging blocks</li>
+        <li style="margin-bottom: 8px;">Persona-specific copy angles</li>
+        <li style="margin-bottom: 8px;">CTA framework</li>
+        <li style="margin-bottom: 8px;">Internal tracking metadata</li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
